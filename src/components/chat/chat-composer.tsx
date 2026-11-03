@@ -46,7 +46,7 @@ export function ChatComposer({
         className="max-h-40 min-h-0 resize-none border-0 bg-transparent px-1.5 py-1 text-body shadow-none focus-visible:ring-0 dark:bg-transparent"
       />
       <div className="flex items-center justify-between">
-        <span className="px-1.5 text-caption text-faint-foreground">Claude · dades de mostra</span>
+        <span className="px-1.5 text-caption text-faint-foreground">Claude · dades de mostra excepte Pedrasses</span>
         <Button type="submit" size="icon" disabled={empty || disabled} aria-label="Enviar" className="size-8 rounded-full">
           <ArrowUpIcon />
         </Button>

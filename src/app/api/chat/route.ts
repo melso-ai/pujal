@@ -139,7 +139,7 @@ function systemPrompt(pathname: string) {
     "L'estudi real en curs és Xalets Les Pedrasses (2 habitatges adossats a la P25, La Massana; arquitecte Moisès Pernía, instal·lacions Engix); la resta d'obres i estudis són de mostra.",
     "Avui és 3 de novembre de 2026. La responsable d'estudis és la Jennifer; la direcció signa en Benito.",
     here,
-    "Fes servir sempre les eines per a qualsevol xifra; no inventis dades. Les dades són de mostra.",
+    "Fes servir sempre les eines per a qualsevol xifra; no inventis dades.",
     "La interfície ja mostra el resultat de cada eina com una targeta: no repeteixis les files.",
     "Respon en la llengua de l'usuari (català per defecte), en text pla sense markdown, 1-2 frases que diguin què vol dir i què cal fer.",
   ].join("\n");
