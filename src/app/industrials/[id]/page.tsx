@@ -1,20 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileTextIcon } from "lucide-react";
 import { Suspense } from "react";
 
 import { AskAction } from "@/components/chat/ask-action";
 import { PageHeader } from "@/components/page-header";
+import { TancamentsBrowser } from "@/components/preus/tancaments-browser";
+import { OfertaResum } from "@/components/industrials/oferta-resum";
 import { Stat } from "@/components/stat";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { date, eur } from "@/lib/format";
 import { getIndustrial, industrials, nomFamilia } from "@/lib/industrials";
 import { preu, volumLabel } from "@/lib/preus";
@@ -22,8 +15,6 @@ import { preu, volumLabel } from "@/lib/preus";
 export function generateStaticParams() {
   return industrials.map((i) => ({ id: i.id }));
 }
-
-const TANCATS_VISIBLES = 12;
 
 export default function IndustrialPage(props: PageProps<"/industrials/[id]">) {
   return (
@@ -48,7 +39,7 @@ async function Fitxa({ params }: { params: PageProps<"/industrials/[id]">["param
     <>
       <PageHeader crumbs={[{ label: "Industrials", href: "/industrials" }, { label: ind.nom }]} />
 
-      <div className="flex flex-col gap-8 p-4 md:p-8">
+      <div className="@container flex min-w-0 flex-col gap-8 p-4 md:p-8">
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {ind.families.map((f) => (
@@ -74,9 +65,17 @@ async function Fitxa({ params }: { params: PageProps<"/industrials/[id]">["param
           </div>
         </div>
 
+        <div className="flex flex-col gap-1">
+          <span className="text-caption text-muted-foreground">
+            {ind.ofertes.length > 0 ? "Ofertes a Pedrasses" : "Preus tancats"}
+          </span>
+          <span className="font-mono text-5xl font-medium tracking-tight tabular-nums">
+            {ind.ofertes.length > 0 ? ind.ofertes.length : ind.tancats.length}
+          </span>
+        </div>
+
         <div className="flex flex-wrap gap-x-12 gap-y-4">
-          <Stat label="Ofertes a Pedrasses" value={ind.ofertes.length} />
-          <Stat label="Preus tancats" value={ind.tancats.length} />
+          {ind.ofertes.length > 0 && <Stat label="Preus tancats" value={ind.tancats.length} />}
           <Stat
             label="Obres amb Pujal"
             value={ind.obresHistoric || "—"}
@@ -94,10 +93,10 @@ async function Fitxa({ params }: { params: PageProps<"/industrials/[id]">["param
                 Comparatiu
               </Link>
             </div>
-            <div className="grid gap-3 lg:grid-cols-2">
+            <div className="grid gap-3 @3xl:grid-cols-2">
               {ind.ofertes.map((o) => (
                 <article key={o.id} className="flex flex-col gap-3 rounded-card bg-card p-4 ring-1 ring-surface-border">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="text-caption text-muted-foreground">
                         <span className="font-mono">{o.familia}</span> {o.familiaNom} · {o.habitatges}
@@ -124,11 +123,7 @@ async function Fitxa({ params }: { params: PageProps<"/industrials/[id]">["param
                       ))}
                     </ul>
                   )}
-                  <div className="mt-auto flex items-center gap-1.5 text-caption text-muted-foreground">
-                    <FileTextIcon className="size-3.5 shrink-0" />
-                    <span className="truncate">{o.fitxer}</span>
-                    {o.data && <span className="ml-auto shrink-0">{date(o.data)}</span>}
-                  </div>
+                  <OfertaResum oferta={o} />
                 </article>
               ))}
             </div>
@@ -138,41 +133,19 @@ async function Fitxa({ params }: { params: PageProps<"/industrials/[id]">["param
         {ind.tancats.length > 0 && (
           <section className="flex flex-col gap-3">
             <h2 className="text-title-sm font-semibold">Preus tancats</h2>
-            <div className="overflow-x-auto rounded-xl ring-1 ring-surface-border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-4">Data</TableHead>
-                    <TableHead>Element</TableHead>
-                    <TableHead>Obra</TableHead>
-                    <TableHead className="text-right">Volum</TableHead>
-                    <TableHead className="pr-4 text-right">Preu</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {ind.tancats.slice(0, TANCATS_VISIBLES).map((t, i) => (
-                    <TableRow key={`${t.elementId}-${t.data}-${i}`}>
-                      <TableCell className="pl-4 font-mono text-muted-foreground tabular-nums">{date(t.data)}</TableCell>
-                      <TableCell>
-                        <Link href={`/preus/${t.elementId}`} className="hover:underline">
-                          {t.element}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{t.obra}</TableCell>
-                      <TableCell className="text-right font-mono tabular-nums">{volumLabel(t.volum, t.unitat)}</TableCell>
-                      <TableCell className="pr-4 text-right font-mono tabular-nums">
-                        {preu(t.preu)}/{t.unitat}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            {ind.tancats.length > TANCATS_VISIBLES && (
-              <span className="text-caption text-muted-foreground">
-                {ind.tancats.length - TANCATS_VISIBLES} més · {ind.obres.join(", ")}
-              </span>
-            )}
+            <TancamentsBrowser files={ind.tancats.map((t, i) => ({
+              id: `${t.elementId}-${t.data}-${i}`,
+              data: t.data,
+              dataLabel: date(t.data),
+              element: t.element,
+              elementHref: `/preus/${t.elementId}`,
+              obra: t.obra,
+              obraHref: `/obres/${t.obraId}`,
+              capObra: t.capObra,
+              volum: volumLabel(t.volum, t.unitat),
+              preu: `${preu(t.preu)}/${t.unitat}`,
+              valor: t.preu,
+            }))} />
           </section>
         )}
 

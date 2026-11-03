@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -5,6 +6,8 @@ import { PageHeader } from "@/components/page-header";
 import { AgruparVolum } from "@/components/preus/agrupar-volum";
 import { PriceHistoryChart } from "@/components/preus/price-history-chart";
 import { TendenciaBadge } from "@/components/preus/preus-table";
+import { TancamentsBrowser } from "@/components/preus/tancaments-browser";
+import { industrials as proveidors } from "@/lib/industrials";
 import { Stat } from "@/components/stat";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,13 +32,10 @@ import {
   seriePerIndustrial,
   volumLabel,
 } from "@/lib/preus";
-import { cn } from "@/lib/utils";
 
 export function generateStaticParams() {
   return elements.map((e) => ({ id: e.id }));
 }
-
-const TANCAMENTS_VISIBLES = 12;
 
 export default function ElementPage(props: PageProps<"/preus/[id]">) {
   return (
@@ -59,7 +59,7 @@ async function Element({ params }: { params: PageProps<"/preus/[id]">["params"] 
     <>
       <PageHeader crumbs={[{ label: "Preus", href: "/preus" }, { label: r.nom }]} />
 
-      <div className="flex flex-col gap-8 p-4 md:p-8">
+      <div className="@container flex min-w-0 flex-col gap-8 p-4 md:p-8">
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">{r.capitol}</Badge>
@@ -73,7 +73,7 @@ async function Element({ params }: { params: PageProps<"/preus/[id]">["params"] 
           </p>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-end">
+        <div className="grid gap-8 @4xl:grid-cols-[auto_minmax(0,1fr)] @4xl:items-end">
           <div className="flex flex-col gap-1">
             <span className="text-caption text-muted-foreground">Preu de referència per a estudis</span>
             <div className="flex items-baseline gap-1">
@@ -86,7 +86,7 @@ async function Element({ params }: { params: PageProps<"/preus/[id]">["params"] 
               Mediana 6 mesos · {preu(r.rang[0])} – {preu(r.rang[1])} · {r.tancaments6} preus
             </span>
           </div>
-          <div className="flex flex-wrap gap-x-10 gap-y-4 lg:justify-end">
+          <div className="flex flex-wrap gap-x-10 gap-y-4 @4xl:justify-end">
             <Stat label="Últim tancat" value={preu(r.ultimPreu)} hint={`${date(r.ultimaData)} · ${r.ultimIndustrial}`} />
             <Stat
               label="Tendència 6m"
@@ -97,7 +97,7 @@ async function Element({ params }: { params: PageProps<"/preus/[id]">["params"] 
           </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid gap-4 @3xl:grid-cols-[minmax(0,1fr)_340px]">
           <Card className="rounded-card ring-surface-border">
             <CardHeader>
               <CardTitle>Preus tancats per industrial</CardTitle>
@@ -117,6 +117,7 @@ async function Element({ params }: { params: PageProps<"/preus/[id]">["params"] 
               descompte={pct(r.agrupar.descompte * 100)}
               files={r.agrupar.files.map((f) => ({
                 obra: f.obra,
+                obraHref: `/obres/${f.obraId}`,
                 mesos: mesosLabel(f.mesos),
                 volum: volumLabel(f.volum, r.unitat),
               }))}
@@ -134,7 +135,13 @@ async function Element({ params }: { params: PageProps<"/preus/[id]">["params"] 
 
         <section className="flex flex-col gap-3">
           <h2 className="text-title-sm font-semibold">Industrials</h2>
-          <div className="overflow-x-auto rounded-xl ring-1 ring-surface-border">
+          <div className="flex flex-col divide-y divide-surface-border overflow-hidden rounded-card bg-card ring-1 ring-surface-border @3xl:hidden">
+            {ranking.map((ind, i) => <Link key={ind.industrial} href={`/industrials/${proveidors.find((p) => p.nom === ind.industrial)!.id}`} className="flex flex-col gap-2 p-4 hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-ring">
+              <div className="flex flex-wrap items-center gap-2"><span className="text-body font-medium">{ind.industrial}</span>{i === 0 && <Badge variant="secondary" className="bg-brand-soft text-brand-text">Millor</Badge>}</div>
+              <div className="flex items-end justify-between gap-2"><div className="flex flex-col"><span className="font-mono text-title-sm tabular-nums">{preu(ind.preuMitja)}<span className="text-caption text-muted-foreground">/{r.unitat}</span></span><span className="text-caption text-muted-foreground">Mitjana 12m</span></div><span className="text-caption text-muted-foreground">{ind.tancaments} preus · {ind.nObres} obres</span></div>
+            </Link>)}
+          </div>
+          <div className="hidden min-w-0 overflow-x-auto rounded-card ring-1 ring-surface-border @3xl:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -150,7 +157,7 @@ async function Element({ params }: { params: PageProps<"/preus/[id]">["params"] 
                   <TableRow key={ind.industrial}>
                     <TableCell className="pl-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{ind.industrial}</span>
+                        <Link href={`/industrials/${proveidors.find((p) => p.nom === ind.industrial)!.id}`} className="font-medium hover:text-brand-text hover:underline">{ind.industrial}</Link>
                         {i === 0 && (
                           <Badge variant="secondary" className="bg-brand-soft text-brand-text">
                             Millor
@@ -174,56 +181,26 @@ async function Element({ params }: { params: PageProps<"/preus/[id]">["params"] 
           </div>
         </section>
 
-        <section className="flex flex-col gap-3">
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-title-sm font-semibold">Últims preus tancats</h2>
-            <span className="text-caption text-muted-foreground">
-              {Math.min(TANCAMENTS_VISIBLES, tancats.length)} de {tancats.length}
-            </span>
-          </div>
-          <div className="overflow-x-auto rounded-xl ring-1 ring-surface-border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-4">Data</TableHead>
-                  <TableHead>Obra</TableHead>
-                  <TableHead>Industrial</TableHead>
-                  <TableHead>Cap d&apos;obra</TableHead>
-                  <TableHead className="text-right">Volum</TableHead>
-                  <TableHead className="pr-4 text-right">Preu</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tancats.slice(0, TANCAMENTS_VISIBLES).map((p, i) => {
-                  const delta = ((p.preu - r.referencia) / r.referencia) * 100;
-                  return (
-                    <TableRow key={`${p.data}-${p.obraId}-${i}`}>
-                      <TableCell className="pl-4 text-muted-foreground">{date(p.data)}</TableCell>
-                      <TableCell>{p.obra}</TableCell>
-                      <TableCell>{p.industrial}</TableCell>
-                      <TableCell className="text-muted-foreground">{p.capObra}</TableCell>
-                      <TableCell className="text-right font-mono tabular-nums">
-                        {volumLabel(p.volum, r.unitat)}
-                      </TableCell>
-                      <TableCell className="pr-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <span
-                            className={cn(
-                              "font-mono text-caption tabular-nums",
-                              delta > 2 ? "text-warning" : delta < -2 ? "text-success" : "text-muted-foreground"
-                            )}
-                          >
-                            {pctSigne(delta)}
-                          </span>
-                          <span className="font-mono tabular-nums">{preu(p.preu)}</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+        <section className="flex min-w-0 flex-col gap-3">
+          <h2 className="text-title-sm font-semibold">Preus tancats</h2>
+          <TancamentsBrowser files={tancats.map((p, i) => {
+            const delta = ((p.preu - r.referencia) / r.referencia) * 100;
+            return {
+              id: `${p.data}-${p.obraId}-${i}`,
+              data: p.data,
+              dataLabel: date(p.data),
+              industrial: p.industrial,
+              industrialHref: `/industrials/${proveidors.find((ind) => ind.nom === p.industrial)!.id}`,
+              obra: p.obra,
+              obraHref: `/obres/${p.obraId}`,
+              capObra: p.capObra,
+              volum: volumLabel(p.volum, r.unitat),
+              preu: `${preu(p.preu)}/${r.unitat}`,
+              valor: p.preu,
+              delta,
+              deltaLabel: pctSigne(delta),
+            };
+          })} />
         </section>
       </div>
     </>

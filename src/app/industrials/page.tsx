@@ -66,7 +66,7 @@ export default function IndustrialsPage() {
       <PageHeader crumbs={[{ label: "Industrials" }]} />
       <div className="flex flex-col gap-8 p-4 md:p-8">
         <div className="flex flex-col gap-1">
-          <span className="text-caption text-muted-foreground">Industrials</span>
+          <h1 className="text-caption text-muted-foreground">Industrials</h1>
           <span className="font-mono text-5xl font-medium tracking-tight tabular-nums">{industrials.length}</span>
           <span className="text-caption text-muted-foreground">
             {familiesCobertes.length} de {codis.length} categories cobertes
@@ -90,8 +90,8 @@ export default function IndustrialsPage() {
             {SENSE_OFERTA_PEDRASSES.map((codi) => {
               const candidats = perFamilia(codi).slice(0, 3);
               return (
-                <div key={codi} className="flex items-center gap-4 px-4 py-3">
-                  <div className="flex min-w-0 flex-1 flex-col">
+                <div key={codi} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                  <div className="flex min-w-40 flex-1 flex-col">
                     <span className="truncate text-body font-medium">
                       <span className="mr-2 font-mono text-caption text-muted-foreground">{codi}</span>
                       {nomFamilia(codi)}

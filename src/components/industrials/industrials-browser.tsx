@@ -4,6 +4,8 @@ import Link from "next/link";
 import { SearchIcon } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { AskAction } from "@/components/chat/ask-action";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -37,20 +39,29 @@ export function IndustrialsBrowser({
 }) {
   const [grup, setGrup] = useState("Totes");
   const [cerca, setCerca] = useState("");
+  const [ambOferta, setAmbOferta] = useState(false);
+  const [ordre, setOrdre] = useState("habitual");
 
   const q = normalitza(cerca.trim());
   const delGrup = <T extends { grup: string }>(c: T) => grup === "Totes" || c.grup === grup;
-  const visibles = categories.filter(
-    (c) =>
-      delGrup(c) &&
-      (!q || normalitza(`${c.codi} ${c.nom} ${c.industrials.map((i) => i.nom).join(" ")}`).includes(q))
-  );
-  const senseIndustrial = buides.filter((c) => delGrup(c) && (!q || normalitza(`${c.codi} ${c.nom}`).includes(q)));
+  const visibles = categories.filter(delGrup).map((c) => {
+    const categoriaCoincideix = !q || normalitza(`${c.codi} ${c.nom}`).includes(q);
+    const industrials = c.industrials.filter((i) => (!ambOferta || i.pedrasses) && (categoriaCoincideix || normalitza(i.nom).includes(q)));
+    return { ...c, industrials: ordre === "nom" ? [...industrials].sort((a, b) => a.nom.localeCompare(b.nom, "ca")) : industrials };
+  }).filter((c) => c.industrials.length > 0);
+  const senseIndustrial = ambOferta ? [] : buides.filter((c) => delGrup(c) && (!q || normalitza(`${c.codi} ${c.nom}`).includes(q)));
+  const nIndustrials = new Set(visibles.flatMap((c) => c.industrials.map((i) => i.id))).size;
+
+  function netejar() {
+    setCerca("");
+    setGrup("Totes");
+    setAmbOferta(false);
+  }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="@container flex min-w-0 flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Tabs value={grup} onValueChange={(v) => setGrup(String(v))} className="max-w-full">
+        <Tabs value={grup} onValueChange={(v) => setGrup(String(v))} className="min-w-0 max-w-full">
           <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
             <TabsList>
               {["Totes", ...grups].map((g) => (
@@ -74,12 +85,17 @@ export function IndustrialsBrowser({
         </InputGroup>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <label className="flex min-h-9 cursor-pointer items-center gap-2 text-label"><input type="checkbox" className="size-4 accent-brand" checked={ambOferta} onChange={(e) => setAmbOferta(e.target.checked)} />Amb oferta a Pedrasses</label>
+        <select aria-label="Ordenar industrials" value={ordre} onChange={(e) => setOrdre(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-2 text-label outline-none focus-visible:ring-2 focus-visible:ring-ring"><option value="habitual">Oferta i experiència</option><option value="nom">Nom de l&apos;industrial</option></select>
+      </div>
+      <span role="status" className="text-caption text-muted-foreground">{nIndustrials} industrials · {visibles.length} categories</span>
+      <div className="grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3">
         {visibles.map((c) => (
           <section
             key={c.codi}
             aria-label={c.nom}
-            className="flex flex-col rounded-card bg-card ring-1 ring-surface-border"
+            className="flex min-w-0 flex-col rounded-card bg-card ring-1 ring-surface-border"
           >
             <div className="flex items-start justify-between gap-3 px-4 pt-3.5 pb-1.5">
               <div className="flex min-w-0 flex-col">
@@ -95,7 +111,7 @@ export function IndustrialsBrowser({
                 <li key={i.id}>
                   <Link
                     href={`/industrials/${i.id}`}
-                    className="flex items-center justify-between gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-surface-hover"
+                    className="flex items-center justify-between gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-ring"
                   >
                     <div className="flex min-w-0 flex-col">
                       <span className="flex items-center gap-1.5 truncate text-label">
@@ -117,18 +133,16 @@ export function IndustrialsBrowser({
         ))}
       </div>
 
-      {visibles.length === 0 && (
-        <div className="rounded-card bg-surface-inset px-5 py-10 text-center text-body text-muted-foreground">
-          Cap industrial
-        </div>
+      {visibles.length === 0 && senseIndustrial.length === 0 && (
+        <div className="flex flex-col items-center gap-3 rounded-card bg-surface-inset px-5 py-10 text-center"><span className="text-body text-muted-foreground">Cap industrial amb aquests filtres</span><Button variant="outline" onClick={netejar}>Netejar filtres</Button></div>
       )}
 
       {senseIndustrial.length > 0 && (
-        <p className="text-caption text-muted-foreground">
-          <span className="font-medium text-foreground">Sense industrial · {senseIndustrial.length}</span>
-          {"  "}
-          {senseIndustrial.map((c) => c.nom).join(" · ")}
-        </p>
+        <div className="flex flex-col gap-3 rounded-card bg-surface-inset p-4">
+          <span className="text-label font-medium">Sense industrial · {senseIndustrial.length}</span>
+          <span className="text-caption text-muted-foreground">{senseIndustrial.map((c) => c.nom).join(" · ")}</span>
+          <AskAction variant="outline" className="self-start" prompt={`Prepara una petició d'oferta per a aquestes categories de Xalets Les Pedrasses: ${senseIndustrial.map((c) => `${c.codi} ${c.nom}`).join(", ")}. Indica les dades que necessitem per donar d'alta els industrials candidats.`}>Preparar petició d&apos;oferta</AskAction>
+        </div>
       )}
     </div>
   );

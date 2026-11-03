@@ -22,6 +22,8 @@ export default function PreusPage() {
     unitat: r.unitat,
     capitol: r.capitol,
     ultim: preu(r.ultimPreu),
+    ultimValor: r.ultimPreu,
+    estalviValor: r.agrupar.estalvi,
     ultimaData: date(r.ultimaData),
     mediana: preu(r.mediana12),
     tendencia: r.tendencia,
@@ -39,9 +41,9 @@ export default function PreusPage() {
       <PageHeader crumbs={[{ label: "Preus" }]} />
       <div className="flex flex-col gap-8 p-4 md:p-8">
         <div className="flex flex-col gap-1">
-          <span className="text-caption text-muted-foreground">
+          <h1 className="text-caption text-muted-foreground">
             Estalvi agrupant volum · pròxims {PREVISIO.length} mesos
-          </span>
+          </h1>
           <span className="font-mono text-5xl font-medium tracking-tight text-brand-text tabular-nums">
             {eur(estalviAgrupantTotal)}
           </span>

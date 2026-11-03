@@ -76,7 +76,7 @@ export function PriceHistoryChart({
             />
           }
         />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<ChartLegendContent className="flex-wrap gap-x-3 gap-y-1 text-caption" />} />
         {industrials.map((ind, i) => (
           <Line
             key={ind.key}
