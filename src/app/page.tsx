@@ -5,14 +5,17 @@ import { PageHeader } from "@/components/page-header";
 import { Stat } from "@/components/stat";
 import { TodayActions, type TodayAction } from "@/components/today-actions";
 import { Progress } from "@/components/ui/progress";
-import { discrepancies, estudis, etapesEstudi, factures, passosAprovacio } from "@/lib/data";
-import { date, eur, eurCompact } from "@/lib/format";
-import { carpetes, comparatiuElectric, ofertes } from "@/lib/pedrasses";
-import { resumElement, volumLabel } from "@/lib/preus";
+import { delCicle, getObraCert, totals as totalsCert } from "@/lib/certificacions";
+import { getOportunitat, PERIODE } from "@/lib/compres";
+import { discrepancies, estudis, etapesEstudi } from "@/lib/data";
+import { date, eur, eurCompact, eurPrecise } from "@/lib/format";
+import { estalvi } from "@/lib/negociacio";
+import { comparatiuElectric, ofertes } from "@/lib/pedrasses";
+import { volumLabel } from "@/lib/preus";
 
-const pendents = factures.filter((f) => f.pas < passosAprovacio.length);
 const cuina = discrepancies.find((d) => d.partida.startsWith("05.11"));
-const formigo = resumElement("formigo-ha25")!;
+const formigo = getOportunitat("formigo-ha25")!;
+const perEnviar = delCicle().filter((c) => c.estat === "Certificació");
 const omeses = comparatiuElectric.omeses.reduce((t, o) => t + o.import, 0);
 const efhysNormalitzat = comparatiuElectric.efhys.total + omeses - comparatiuElectric.besoli.total;
 
@@ -21,10 +24,10 @@ const accions: TodayAction[] = [
     id: "pedrasses",
     icon: "ofertes",
     title: `Xalets Les Pedrasses · ${ofertes.length} ofertes llegides`,
-    meta: `${carpetes[2].industrials} industrials · EFHYS deixa ${comparatiuElectric.omeses.length} partides sense preu`,
-    value: `+${eur(efhysNormalitzat)}`,
-    action: "Revisar",
-    href: "/pressupostos/pedrasses#comparatiu",
+    meta: `Electricitat: EFHYS omet ${comparatiuElectric.omeses.length} partides (+${eur(efhysNormalitzat)}) · negociar capítol a capítol`,
+    value: `−${eur(estalvi)}`,
+    action: "Negociar",
+    href: "/pressupostos/pedrasses/negociar",
     primary: true,
   },
   {
@@ -48,20 +51,20 @@ const accions: TodayAction[] = [
   {
     id: "formigo",
     icon: "volum",
-    title: `Formigó HA-25 per a ${formigo.agrupar.nObres} obres en 4 mesos`,
-    meta: `${volumLabel(formigo.agrupar.volum, formigo.unitat)} · un sol preu per volum`,
-    value: `−${eur(formigo.agrupar.estalvi)}`,
+    title: `Formigó HA-25 de ${formigo.nObres} obres · ${PERIODE}`,
+    meta: `${volumLabel(formigo.volum, formigo.unitat)} · un sol preu per volum · ${eurPrecise(formigo.referencia)} → ${eurPrecise(formigo.preuObjectiu)}/${formigo.unitat}`,
+    value: `−${eur(formigo.estalvi)}`,
     action: "Agrupar",
-    href: "/preus/formigo-ha25",
+    href: "/compres/formigo-ha25",
   },
   {
-    id: "factures",
+    id: "certificacions",
     icon: "factures",
-    title: `${pendents.length} factures pendents d'aprovar`,
-    meta: pendents.map((f) => f.proveidor).join(", "),
-    value: eur(pendents.reduce((s, f) => s + f.import, 0)),
-    action: "Aprovar",
-    href: "/obres/aixovall#factures",
+    title: `${perEnviar.length} certificacions d'octubre llestes per enviar`,
+    meta: perEnviar.map((c) => getObraCert(c.obraId)?.nom).join(", "),
+    value: eur(perEnviar.reduce((s, c) => s + totalsCert(c).pujal, 0)),
+    action: "Enviar",
+    href: "/certificacions",
   },
 ];
 

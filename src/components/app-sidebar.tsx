@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BookOpenIcon,
+  BookMarkedIcon,
   Building2Icon,
   CalculatorIcon,
   DatabaseIcon,
+  FilePenLineIcon,
   HardHatIcon,
   HouseIcon,
   PlusIcon,
+  ReceiptTextIcon,
   SearchIcon,
+  ShoppingCartIcon,
   TagIcon,
 } from "lucide-react";
 
@@ -33,16 +36,35 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-const nav = [
-  { href: "/", label: "Avui", icon: HouseIcon, badge: "5" },
-  { href: "/pressupostos", label: "Pressupostos", icon: CalculatorIcon },
-  { href: "/preus", label: "Preus", icon: TagIcon },
-  { href: "/industrials", label: "Industrials", icon: HardHatIcon },
-  { href: "/obres", label: "Obres", icon: Building2Icon },
-  { href: "/dades", label: "Dades", icon: DatabaseIcon },
-];
+type NavItem = { href: string; label: string; icon: typeof HouseIcon; badge?: string };
 
-const properament = [{ label: "Contractes", icon: BookOpenIcon }];
+const grups: { label?: string; items: NavItem[] }[] = [
+  { items: [{ href: "/", label: "Avui", icon: HouseIcon, badge: "5" }] },
+  {
+    label: "Estudis",
+    items: [
+      { href: "/pressupostos", label: "Pressupostos", icon: CalculatorIcon },
+      { href: "/preus", label: "Preus", icon: TagIcon },
+      { href: "/industrials", label: "Industrials", icon: HardHatIcon },
+      { href: "/compres", label: "Compres", icon: ShoppingCartIcon },
+    ],
+  },
+  {
+    label: "Obra",
+    items: [
+      { href: "/obres", label: "Obres", icon: Building2Icon },
+      { href: "/contractes", label: "Contractes", icon: FilePenLineIcon },
+      { href: "/certificacions", label: "Certificacions", icon: ReceiptTextIcon },
+    ],
+  },
+  {
+    label: "Empresa",
+    items: [
+      { href: "/coneixement", label: "Coneixement", icon: BookMarkedIcon },
+      { href: "/dades", label: "Dades", icon: DatabaseIcon },
+    ],
+  },
+];
 
 // Melso's nav button: muted until active, active keeps its fill on hover.
 const NAV_BUTTON_CLASS =
@@ -92,48 +114,36 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup className="py-0">
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {nav.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    tooltip={item.label}
-                    isActive={isActive(item.href) && pathname !== "/pressupostos/nou"}
-                    render={<Link href={item.href} />}
-                    className={NAV_BUTTON_CLASS}
-                  >
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                  {item.badge && (
-                    <SidebarMenuBadge className="text-caption text-brand-text">{item.badge}</SidebarMenuBadge>
-                  )}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup className="mt-3 py-0">
-          <SidebarGroupLabel>Properament</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {properament.map((item) => (
-                <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton tooltip={item.label} disabled className={NAV_BUTTON_CLASS}>
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {grups.map((g, i) => (
+          <SidebarGroup key={g.label ?? i} className={i > 0 ? "mt-1 py-0" : "py-0"}>
+            {g.label && <SidebarGroupLabel>{g.label}</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {g.items.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      tooltip={item.label}
+                      isActive={isActive(item.href) && pathname !== "/pressupostos/nou"}
+                      render={<Link href={item.href} />}
+                      className={NAV_BUTTON_CLASS}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                    {item.badge && (
+                      <SidebarMenuBadge className="text-caption text-brand-text">{item.badge}</SidebarMenuBadge>
+                    )}
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <div className="flex items-center gap-2 pb-1 pl-2 text-caption text-faint-foreground group-data-[collapsible=icon]:hidden">
           <MelsoMark className="h-3 w-auto shrink-0 text-brand" />
-          <span className="truncate">Prototip amb Melso · v0.4</span>
+          <span className="truncate" title="v0.4">Prototip amb Melso</span>
           <ThemeSwitcher className="ml-auto shrink-0" />
         </div>
       </SidebarFooter>

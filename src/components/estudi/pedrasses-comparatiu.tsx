@@ -494,9 +494,14 @@ function ElectricCard({
         ) : altraAdjudicacio ? (
           <span className="text-caption text-muted-foreground">Una altra oferta adjudicada · revisa la família IND.01</span>
         ) : (
-          <Button size="sm" onClick={onAdjudica}>
-            Adjudicar a Besolí
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" nativeButton={false} render={<Link href="/pressupostos/pedrasses/negociar" />}>
+              Negociar capítol a capítol
+            </Button>
+            <Button size="sm" onClick={onAdjudica}>
+              Adjudicar a Besolí
+            </Button>
+          </div>
         )}
       </CardFooter>
     </Card>

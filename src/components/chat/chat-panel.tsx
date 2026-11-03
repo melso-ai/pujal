@@ -39,6 +39,11 @@ const TOOL_LABELS: Record<string, string> = {
   ofertesPedrasses: "Llegint les ofertes de Pedrasses",
   electricPedrasses: "Comparant Besoli i EFHYS línia a línia",
   industrials: "Buscant industrials",
+  negociacioElectric: "Comparant capítol a capítol",
+  certificacionsCicle: "Revisant les certificacions",
+  detallCertificacio: "Llegint la certificació",
+  compresAgrupades: "Sumant la demanda de totes les obres",
+  compraElement: "Calculant el volum per obra",
 };
 
 type Email = { per: string; assumpte: string; cos: string };

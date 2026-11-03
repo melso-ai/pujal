@@ -2,13 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import {
+  BookMarkedIcon,
   Building2Icon,
   CalculatorIcon,
   DatabaseIcon,
+  FilePenLineIcon,
   FilePlusIcon,
+  HandshakeIcon,
   HardHatIcon,
   HouseIcon,
+  ReceiptTextIcon,
   SendIcon,
+  ShoppingCartIcon,
   TagIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -24,6 +29,7 @@ import {
   CommandList,
   CommandShortcut,
 } from "@/components/ui/command";
+import { agrupables } from "@/lib/compres";
 import { estudis, etapesEstudi, obres } from "@/lib/data";
 import { industrials, nomFamilia } from "@/lib/industrials";
 import { elements } from "@/lib/preus";
@@ -35,7 +41,11 @@ const pages = [
   { label: "Pressupostos", href: "/pressupostos", icon: CalculatorIcon },
   { label: "Preus", href: "/preus", icon: TagIcon },
   { label: "Industrials", href: "/industrials", icon: HardHatIcon },
+  { label: "Compres agrupades", href: "/compres", icon: ShoppingCartIcon },
   { label: "Obres", href: "/obres", icon: Building2Icon },
+  { label: "Contractes", href: "/contractes", icon: FilePenLineIcon },
+  { label: "Certificacions", href: "/certificacions", icon: ReceiptTextIcon },
+  { label: "Coneixement", href: "/coneixement", icon: BookMarkedIcon },
   { label: "Dades", href: "/dades", icon: DatabaseIcon },
 ];
 
@@ -76,6 +86,14 @@ export function CommandMenu() {
               <FilePlusIcon />
               Nou estudi
             </CommandItem>
+            <CommandItem value="negociar electricitat pedrasses" onSelect={() => go("/pressupostos/pedrasses/negociar")}>
+              <HandshakeIcon />
+              Negociar l&apos;electricitat de Pedrasses
+            </CommandItem>
+            <CommandItem value="nou contracte" onSelect={() => go("/contractes/nou")}>
+              <FilePenLineIcon />
+              Nou contracte
+            </CommandItem>
             <CommandItem
               onSelect={() => {
                 setOpen(false);
@@ -110,6 +128,14 @@ export function CommandMenu() {
                 <TagIcon />
                 {e.nom}
                 <CommandShortcut>{e.unitat}</CommandShortcut>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandGroup heading="Compres">
+            {agrupables.map((o) => (
+              <CommandItem key={o.id} value={`agrupar compra ${o.nom}`} onSelect={() => go(`/compres/${o.id}`)}>
+                <ShoppingCartIcon />
+                Agrupar {o.nom}
               </CommandItem>
             ))}
           </CommandGroup>

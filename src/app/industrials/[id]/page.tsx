@@ -8,6 +8,7 @@ import { TancamentsBrowser } from "@/components/preus/tancaments-browser";
 import { OfertaResum } from "@/components/industrials/oferta-resum";
 import { Stat } from "@/components/stat";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { date, eur } from "@/lib/format";
 import { getIndustrial, industrials, nomFamilia } from "@/lib/industrials";
 import { preu, volumLabel } from "@/lib/preus";
@@ -62,6 +63,15 @@ async function Fitxa({ params }: { params: PageProps<"/industrials/[id]">["param
             >
               Preguntar
             </AskAction>
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-full"
+              nativeButton={false}
+              render={<Link href={`/contractes/nou?industrial=${ind.id}`} />}
+            >
+              Fer contracte
+            </Button>
           </div>
         </div>
 

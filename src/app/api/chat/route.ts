@@ -18,6 +18,7 @@ import {
   dadesPendents,
   detallObra,
   electricPedrasses,
+  negociacioElectric,
   ofertesPedrasses,
   discrepanciesAmidaments,
   industrialsCategoria,
@@ -29,6 +30,8 @@ import {
   preuReferencia,
   resumObres,
 } from "@/lib/assistant";
+import { certificacions as certs, detallCertificacio, resumCertificacions } from "@/lib/certificacions";
+import { cardCompres, cardOportunitat, oportunitats } from "@/lib/compres";
 import { obres } from "@/lib/data";
 import { families } from "@/lib/pedrasses";
 import { elements } from "@/lib/preus";
@@ -105,6 +108,32 @@ const tools = {
     }),
     execute: async ({ familia }) => ofertesPedrasses(familia),
   }),
+  certificacionsCicle: tool({
+    description: "Certificacions del cicle d'octubre per estat (producció, certificació, arquitecte, facturada, cobrada), imports, UTEs i retencions.",
+    inputSchema: noInput,
+    execute: async () => resumCertificacions(),
+  }),
+  detallCertificacio: tool({
+    description: "Detall d'una certificació mensual (id <obra>-<aaaa-mm>, p. ex. aixovall-2026-10): avanç, base, IGI 4,5%, retenció 5%, total a cobrar i desviacions.",
+    inputSchema: z.object({ id: z.enum(certs.map((c) => c.id) as [string, ...string[]]) }),
+    execute: async ({ id }) => detallCertificacio(id),
+  }),
+  negociacioElectric: tool({
+    description:
+      "Negociació capítol a capítol de l'electricitat de Pedrasses (Besolí vs EFHYS): què demanar a cadascú, objectiu i estalvi. Mai un descompte lineal.",
+    inputSchema: noInput,
+    execute: async () => negociacioElectric(),
+  }),
+  compresAgrupades: tool({
+    description: "Compres agrupades entre obres els propers mesos: elements, volum total, preu de referència i objectiu, estalvi i candidats.",
+    inputSchema: noInput,
+    execute: async () => cardCompres(),
+  }),
+  compraElement: tool({
+    description: "Detall d'una compra agrupada d'un element (p. ex. formigo-ha25): demanda per obra i mes, preus i industrials candidats.",
+    inputSchema: z.object({ id: z.enum(oportunitats.map((o) => o.id) as [string, ...string[]]) }),
+    execute: async ({ id }) => cardOportunitat(id),
+  }),
   electricPedrasses: tool({
     description: "Comparatiu línia a línia de l'electricitat de Xalets Les Pedrasses: Besoli vs EFHYS, partides omeses i preu normalitzat.",
     inputSchema: noInput,
@@ -128,7 +157,7 @@ const tools = {
     inputSchema: z.object({
       per: z.string().describe("Destinatari, p. ex. Clima Valira"),
       assumpte: z.string(),
-      cos: z.string().describe("Cos del correu, 3-6 frases, to professional i proper"),
+      cos: z.string().describe("Cos del correu, to professional i proper; si és una negociació, inclou la llista de capítols o partides amb preus"),
     }),
     execute: async (draft) => draft,
   }),
@@ -164,7 +193,7 @@ export async function POST(req: Request) {
     messages: await convertToModelMessages(messages.slice(-20)),
     tools,
     stopWhen: isStepCount(5),
-    maxOutputTokens: 800,
+    maxOutputTokens: 2400,
   });
 
   return createUIMessageStreamResponse({

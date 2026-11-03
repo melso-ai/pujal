@@ -25,6 +25,7 @@ import {
   resumIndustrial,
   SENSE_OFERTA_PEDRASSES,
 } from "@/lib/industrials";
+import { domotica, estalvi, estalviPct, peticionsBesoli, peticionsEfhys, totals as negociacio } from "@/lib/negociacio";
 import { comparatiuElectric, families, ofertes } from "@/lib/pedrasses";
 import { pctSigne, preu, resumElement, resumPreus, volumLabel } from "@/lib/preus";
 
@@ -51,11 +52,35 @@ export function suggestionsFor(pathname: string): string[] {
       "Quines factures falten per aprovar?",
       "Redacta un correu a Clima Valira perquè signin el contracte",
     ];
+  if (pathname === "/pressupostos/pedrasses/negociar")
+    return [
+      "Redacta el correu a Besolí capítol a capítol",
+      "Per què no adjudiquem a EFHYS si és més barat?",
+      "Quant estalviaríem fent això a tots els gremis?",
+    ];
   if (estudiId === "pedrasses")
     return [
+      "Com negociem l'electricitat partida per partida?",
       "Quina oferta d'electricitat és realment més barata?",
-      "Compara les ofertes de cuina",
       "Quines famílies no tenen cap oferta?",
+    ];
+  if (pathname.startsWith("/contractes"))
+    return [
+      "Quins contractes falten per signar?",
+      "Quines retencions cobrem o retornem aquest mes?",
+      "Fes el contracte d'Elèctrica Marcel Besolí per a Pedrasses",
+    ];
+  if (pathname.startsWith("/certificacions"))
+    return [
+      "Què falta per certificar aquest mes?",
+      "Quines certificacions tenen desviacions?",
+      "Quant tenim de retencions pendents de cobrar?",
+    ];
+  if (pathname.startsWith("/compres"))
+    return [
+      "On estalviem més agrupant compres aquest trimestre?",
+      "Redacta el correu per negociar el formigó de totes les obres",
+      "Quant afegeix Pedrasses si s'adjudica?",
     ];
   if (estudiId)
     return [
@@ -350,5 +375,19 @@ export function industrialsCategoria(familia?: string): Card {
       })),
     ],
     links: [{ label: "Obrir industrials", href: "/industrials" }],
+  };
+}
+
+export function negociacioElectric(): Card {
+  return {
+    title: `Electricitat Pedrasses · negociar capítol a capítol · −${eur(estalvi)}`,
+    rows: [
+      { label: "EFHYS tal com ve", value: eur(negociacio.efhysBrut), hint: `omet ${domotica.partides} partides · real ${eur(negociacio.efhysReal)}` },
+      { label: "Besolí sencer", value: eur(negociacio.besoli) },
+      { label: "Objectiu negociat", value: eur(negociacio.objectiu), hint: `−${pct(estalviPct)} vs Besolí sencer` },
+      ...peticionsBesoli.map((p) => ({ label: `Besolí iguala ${p.nom.toLowerCase()}`, value: `−${eur(p.rebaixa)}`, hint: `${eur(p.actual)} → ${eur(p.objectiu)}` })),
+      { label: "EFHYS iguala Besolí", value: `${peticionsEfhys.length} capítols`, hint: `i valora ${domotica.partides} partides de domòtica` },
+    ],
+    links: [{ label: "Obrir negociació", href: "/pressupostos/pedrasses/negociar" }],
   };
 }
