@@ -24,7 +24,7 @@ const accions: TodayAction[] = [
     meta: `${carpetes[2].industrials} industrials · EFHYS deixa ${comparatiuElectric.omeses.length} partides sense preu`,
     value: `+${eur(efhysNormalitzat)}`,
     action: "Revisar",
-    href: "/pressupostos/pedrasses",
+    href: "/pressupostos/pedrasses#comparatiu",
     primary: true,
   },
   {
@@ -43,7 +43,7 @@ const accions: TodayAction[] = [
     meta: `Edifici Plaça Major · ${cuina?.partida ?? "05.11 Cuina"}`,
     value: eur(cuina?.impacte ?? 48_000),
     action: "Revisar",
-    href: "/pressupostos/placa-major",
+    href: "/pressupostos/placa-major#documentacio",
   },
   {
     id: "formigo",
@@ -61,7 +61,7 @@ const accions: TodayAction[] = [
     meta: pendents.map((f) => f.proveidor).join(", "),
     value: eur(pendents.reduce((s, f) => s + f.import, 0)),
     action: "Aprovar",
-    href: "/obres/aixovall",
+    href: "/obres/aixovall#factures",
   },
 ];
 
@@ -72,7 +72,7 @@ export default function AvuiPage() {
   return (
     <>
       <PageHeader crumbs={[{ label: "Avui" }]} />
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 p-4 md:p-8">
+      <div className="@container mx-auto flex w-full max-w-5xl flex-col gap-10 p-4 md:p-8">
         <div className="flex flex-col gap-1">
           <span className="text-label text-muted-foreground">Dimarts, 3 de novembre</span>
           <h1 className="text-display-sm font-semibold tracking-tight">Bon dia, Marta</h1>
@@ -85,7 +85,7 @@ export default function AvuiPage() {
           </div>
           <Stat label="Estudis" value={estudis.length} />
           <Stat label="Proper lliurament" value={date(enCurs[0].lliurament)} />
-          <Stat label="Temps per estudi" value="2 mesos → 2 setm." />
+          <Stat label="Al comparatiu" value={estudis.filter((e) => e.etapa === 2).length} />
         </div>
 
         <section className="flex flex-col gap-3">
@@ -100,7 +100,7 @@ export default function AvuiPage() {
               Tots
             </Link>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 @md:grid-cols-2 @3xl:grid-cols-4">
             {enCurs.slice(0, 4).map((e) => (
               <Link
                 key={e.id}

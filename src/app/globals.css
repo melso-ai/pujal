@@ -185,3 +185,31 @@
     @apply font-sans;
   }
 }
+
+@layer base {
+  a:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (pointer: coarse) {
+    [data-slot="button"], [data-slot="tabs-trigger"], [data-slot="input"], [data-slot="input-group"], [data-slot="input-group-control"], textarea, select {
+      min-height: 44px;
+    }
+    [data-slot="button"][aria-label], [data-slot="sidebar-trigger"] {
+      min-width: 44px;
+    }
+    input, textarea, select {
+      font-size: 16px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

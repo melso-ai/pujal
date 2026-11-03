@@ -24,25 +24,25 @@ export function PageHeader({
   return (
     <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 bg-page-canvas/80 px-4 backdrop-blur">
       <SidebarTrigger className="-ml-1 text-muted-foreground" />
-      <Breadcrumb>
-        <BreadcrumbList className="text-label">
+      <Breadcrumb className="min-w-0 flex-1">
+        <BreadcrumbList className="flex-nowrap overflow-hidden text-label">
           {crumbs.map((c, i) => (
             <Fragment key={c.label}>
               {i > 0 && <BreadcrumbSeparator />}
-              <BreadcrumbItem>
+              <BreadcrumbItem className="min-w-0 shrink">
                 {c.href ? (
-                  <BreadcrumbLink render={<Link href={c.href} />}>
+                  <BreadcrumbLink className="truncate" render={<Link href={c.href} />}>
                     {c.label}
                   </BreadcrumbLink>
                 ) : (
-                  <BreadcrumbPage>{c.label}</BreadcrumbPage>
+                  <BreadcrumbPage className="truncate" title={c.label}>{c.label}</BreadcrumbPage>
                 )}
               </BreadcrumbItem>
             </Fragment>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-2">
         {children}
         <AskButton />
       </div>
