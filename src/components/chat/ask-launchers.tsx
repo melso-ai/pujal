@@ -5,12 +5,18 @@ import { ArrowUpIcon, SendIcon } from "lucide-react";
 import { useChat } from "@/components/chat/chat-provider";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
+import { cn } from "@/lib/utils";
 
 export function AskButton() {
-  const { open, openChat } = useChat();
-  if (open) return null;
+  const { open, byDefault, openChat } = useChat();
+  if (open && !byDefault) return null;
   return (
-    <Button variant="outline" size="sm" onClick={openChat} className="h-7 rounded-full px-2.5 text-label">
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={openChat}
+      className={cn("h-7 rounded-full px-2.5 text-label", open && "md:hidden")}
+    >
       <SendIcon data-icon="inline-start" />
       <span className="hidden sm:inline">Preguntar</span>
     </Button>
@@ -18,10 +24,15 @@ export function AskButton() {
 }
 
 export function AskComposer() {
-  const { open, openChat } = useChat();
-  if (open) return null;
+  const { open, byDefault, openChat } = useChat();
+  if (open && !byDefault) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-4 pb-4 sm:px-6">
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-0 z-20 px-4 pb-4 sm:px-6",
+        open && "md:hidden"
+      )}
+    >
       <button
         type="button"
         onClick={openChat}

@@ -8,7 +8,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
@@ -17,6 +16,7 @@ import type { ChatMessage } from "@/app/api/chat/route";
 
 type ChatState = {
   open: boolean;
+  byDefault: boolean;
   messages: ChatMessage[];
   busy: boolean;
   error: Error | undefined;
@@ -37,28 +37,16 @@ export function useChat() {
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { isMobile, open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar();
-  const [open, setOpen] = useState(false);
+  const { isMobile } = useSidebar();
+  // Null until the user toggles it: docked beside the page on desktop, closed on phones.
+  const [choice, setChoice] = useState<boolean | null>(null);
+  const open = choice ?? !isMobile;
+  const byDefault = choice === null;
   const { messages, sendMessage, status, error, regenerate, setMessages, stop } =
     useAIChat<ChatMessage>();
-  // The panel borrows the nav's space while open, like Melso's Ask panel.
-  const parkedSidebar = useRef(false);
 
-  const openChat = useCallback(() => {
-    if (!isMobile && sidebarOpen) {
-      parkedSidebar.current = true;
-      setSidebarOpen(false);
-    }
-    setOpen(true);
-  }, [isMobile, sidebarOpen, setSidebarOpen]);
-
-  const closeChat = useCallback(() => {
-    setOpen(false);
-    if (parkedSidebar.current) {
-      parkedSidebar.current = false;
-      setSidebarOpen(true);
-    }
-  }, [setSidebarOpen]);
+  const openChat = useCallback(() => setChoice(true), []);
+  const closeChat = useCallback(() => setChoice(false), []);
 
   const send = useCallback(
     (text: string) => {
@@ -96,8 +84,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const busy = status === "submitted" || status === "streaming";
 
   const value = useMemo(
-    () => ({ open, messages, busy, error, openChat, closeChat, send, retry, reset }),
-    [open, messages, busy, error, openChat, closeChat, send, retry, reset]
+    () => ({ open, byDefault, messages, busy, error, openChat, closeChat, send, retry, reset }),
+    [open, byDefault, messages, busy, error, openChat, closeChat, send, retry, reset]
   );
 
   return <ChatContext value={value}>{children}</ChatContext>;

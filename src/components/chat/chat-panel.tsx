@@ -20,6 +20,7 @@ import { MelsoMark } from "@/components/chat/melso-mark";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { suggestionsFor, type Card } from "@/lib/assistant";
+import { cn } from "@/lib/utils";
 
 const TOOL_LABELS: Record<string, string> = {
   resumObres: "Consultant obres",
@@ -240,7 +241,7 @@ export function ChatPanel() {
 }
 
 function Panel() {
-  const { messages, busy, error, send, retry, reset, closeChat } = useChat();
+  const { byDefault, messages, busy, error, send, retry, reset, closeChat } = useChat();
   const endRef = useRef<HTMLDivElement>(null);
   const waiting = busy && messages.at(-1)?.role === "user";
 
@@ -253,7 +254,10 @@ function Panel() {
       role="dialog"
       aria-modal="false"
       aria-label="Assistent"
-      className="flex min-h-0 flex-col bg-page-canvas duration-200 animate-in fade-in slide-in-from-right-4 max-md:fixed max-md:inset-0 max-md:z-50 md:relative md:my-2 md:mr-2 md:w-[380px] md:shrink-0 md:rounded-xl md:shadow-[var(--surface-shadow)] md:ring-1 md:ring-surface-border lg:w-[420px]"
+      className={cn(
+        "flex min-h-0 flex-col bg-page-canvas duration-200 animate-in fade-in slide-in-from-right-4 max-md:fixed max-md:inset-0 max-md:z-50 md:relative md:my-2 md:mr-2 md:w-[380px] md:shrink-0 md:rounded-xl md:shadow-[var(--surface-shadow)] md:ring-1 md:ring-surface-border lg:w-[420px]",
+        byDefault && "max-md:hidden"
+      )}
     >
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[inherit]">
         <div className="flex h-12 shrink-0 items-center gap-1 px-2">
