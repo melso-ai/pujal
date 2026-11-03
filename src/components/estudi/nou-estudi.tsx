@@ -89,7 +89,6 @@ export function NouEstudi() {
   };
 
   const iniciar = () => {
-    if (!exemple) carregarExemple();
     setActual(0);
     setElapsed(0);
     setExecucio((n) => n + 1);
@@ -104,16 +103,16 @@ export function NouEstudi() {
 
   if (fase === "idle") {
     return (
-      <div className="flex flex-col gap-8 p-4 md:p-8">
+      <div className="@container flex min-w-0 flex-col gap-8 p-4 md:p-8">
         <div className="flex flex-col gap-1">
           <h1 className="text-display-sm font-semibold tracking-tight">Nou estudi</h1>
           <p className="text-body text-muted-foreground">
             {exemple
               ? `${exemplePedrasses.nom} · ${exemplePedrasses.descripcio}`
-              : "Deixa les 3 carpetes de l'estudi"}
+              : "Tria els documents de les 3 carpetes"}
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 @2xl:grid-cols-3">
           {zones.map((z) => (
             <DropCarpeta
               key={z.id}
@@ -121,7 +120,7 @@ export function NouEstudi() {
               carpeta={z.carpeta}
               format={z.format}
               contingut={carpetes[z.id]}
-              onContingut={(c) => setCarpetes((prev) => ({ ...prev, [z.id]: c }))}
+              onContingut={(c) => { setCarpetes((prev) => ({ ...prev, [z.id]: c })); setExemple(false); }}
             />
           ))}
         </div>
@@ -133,7 +132,11 @@ export function NouEstudi() {
           <Button size="lg" variant="outline" onClick={carregarExemple}>
             Carregar {exemplePedrasses.nom}
           </Button>
-          <span className="text-caption text-muted-foreground">Avui: ≈ 2 mesos per estudi</span>
+          <span className="text-caption text-muted-foreground" role="status">{zones.filter((z) => (carpetes[z.id]?.fitxers ?? 0) > 0).length} de {zones.length} carpetes preparades</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-caption text-muted-foreground">
+          <Badge variant="outline">Simulació</Badge>
+          Resultats de {exemplePedrasses.nom} · els fitxers no s&apos;envien
         </div>
       </div>
     );
@@ -142,10 +145,11 @@ export function NouEstudi() {
   const progres = fase === "done" ? 100 : Math.min(99, (elapsed / DURADA_TOTAL) * 100);
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-8">
+    <div className="@container flex min-w-0 flex-col gap-6 p-4 md:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-display-sm font-semibold tracking-tight">{exemplePedrasses.nom}</h1>
+          <Badge variant="outline">Simulació · dades de Pedrasses</Badge>
           <p className="text-body text-muted-foreground">
             {exemplePedrasses.arquitecte} · {exemplePedrasses.enginyeria} · lliurament{" "}
             {date(exemplePedrasses.lliurament)}
@@ -162,14 +166,18 @@ export function NouEstudi() {
               Saltar
             </Button>
           ) : (
-            <Button variant="outline" onClick={iniciar}>
-              <RotateCcwIcon data-icon="inline-start" />
-              Repetir
-            </Button>
+            <>
+              <Button variant="ghost" onClick={() => { setFase("idle"); setElapsed(0); }}>Canviar fitxers</Button>
+              <Button variant="outline" onClick={iniciar}>
+                <RotateCcwIcon data-icon="inline-start" />
+                Repetir
+              </Button>
+            </>
           )}
         </div>
       </div>
-      <Progress value={progres} />
+      <Progress value={progres} aria-label="Progrés de la simulació" />
+      <span className="sr-only" role="status">{fase === "done" ? "Simulació completada" : etapesRun[actual]?.titol}</span>
       <ol className="flex flex-col">
         {etapesRun.map((e, i) => {
           const estat: Estat =
@@ -225,14 +233,14 @@ function DropCarpeta({
         llegir(e.dataTransfer.files);
       }}
       className={cn(
-        "flex min-h-44 min-w-0 cursor-pointer flex-col gap-3 rounded-card p-4 transition-colors",
+        "flex min-h-44 min-w-0 cursor-pointer focus-within:outline-2 focus-within:outline-ring flex-col gap-3 rounded-card p-4 transition-colors",
         plena
           ? "bg-card shadow-[var(--surface-shadow)] ring-1 ring-surface-border"
           : "border-2 border-dashed border-border hover:border-ring hover:bg-surface-hover",
         sobre && "border-brand bg-brand-soft"
       )}
     >
-      <input type="file" multiple className="sr-only" onChange={(e) => llegir(e.target.files)} />
+      <input type="file" aria-label={`Triar fitxers de ${nom}`} accept=".pdf,.xlsx,.xls,.bc3,.dwg,.zip" multiple className="sr-only" onChange={(e) => llegir(e.target.files)} />
       <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2 text-body font-medium">
           {plena ? (
@@ -377,7 +385,7 @@ function Lectura({ titol, durada, actiu }: PasProps) {
         {zones.map((z, i) => {
           const p = Math.max(0, Math.min(100, (progres / 100) * n * 100 - i * 100));
           return (
-            <div key={z.id} className="grid grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-3">
+            <div key={z.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
               <span className="truncate text-label">{z.nom}</span>
               <Progress value={p} />
               <span className="font-mono text-caption text-muted-foreground tabular-nums">
@@ -401,7 +409,7 @@ function Partides({ titol, durada, actiu }: PasProps) {
     <>
       <Cap titol={titol} comptador={`${num(total)} partides`} />
       <Cos className="flex flex-col gap-3">
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 @3xl:grid-cols-4">
           {grupsPartides.map((g) => (
             <div key={g.nom} className="flex flex-col gap-1 rounded-tile bg-surface-inset p-3">
               <span className="truncate text-label font-medium">{g.nom}</span>
@@ -449,7 +457,7 @@ function Ofertes({ titol, durada, actiu }: PasProps) {
           {ofertesMostra.slice(0, visibles).map((o) => (
             <div
               key={o.id}
-              className="flex items-center justify-between gap-3 px-3 py-2 duration-300 animate-in fade-in"
+              className="flex flex-col gap-2 px-3 py-2 duration-300 animate-in fade-in @xl:flex-row @xl:items-center @xl:justify-between"
             >
               <div className="flex min-w-0 flex-col">
                 <span className="truncate text-label font-medium">{o.industrial}</span>
@@ -570,7 +578,7 @@ function Alertes({ titol, durada, actiu }: PasProps) {
   return (
     <>
       <Cap titol={titol} comptador={`${visibles} alertes`} />
-      <Cos className="grid gap-2 lg:grid-cols-2">{blocs.slice(0, visibles)}</Cos>
+      <Cos className="grid gap-2 @3xl:grid-cols-2">{blocs.slice(0, visibles)}</Cos>
     </>
   );
 }
@@ -650,7 +658,7 @@ function Resum({ elapsed }: { elapsed: number }) {
           <ArrowRightIcon data-icon="inline-end" />
         </Button>
       </div>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-4 @2xl:grid-cols-3 @4xl:grid-cols-5">
         {xifres.map((x) => (
           <div key={x.label} className="flex flex-col gap-0.5">
             <span className="text-caption text-muted-foreground">{x.label}</span>

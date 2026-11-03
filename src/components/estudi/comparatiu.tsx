@@ -35,6 +35,7 @@ export function Comparatiu() {
   const [triat, setTriat] = useState<Record<string, string>>(() =>
     Object.fromEntries(comparatiuNormalitzat.map((c) => [c.partida, c.millor]))
   );
+  const [demanades, setDemanades] = useState(false);
   const [adjudicat, setAdjudicat] = useState<Record<string, string>>({});
 
   const ofertes = comparatiuNormalitzat.reduce((s, c) => s + c.ofertes.length, 0);
@@ -42,7 +43,7 @@ export function Comparatiu() {
   const canvis = comparatiuNormalitzat.filter((c) => c.millor !== c.mesBarataBrut).length;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="@container flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-wrap gap-x-10 gap-y-3">
           <Stat label="Ofertes llegides" value={ofertes} hint={[...formats].join(" · ")} />
@@ -52,9 +53,9 @@ export function Comparatiu() {
             value={`${Object.keys(adjudicat).length}/${comparatiuNormalitzat.length}`}
           />
         </div>
-        <Button size="sm" variant="outline">
+        <Button size="sm" variant="outline" disabled={demanades} onClick={() => setDemanades(true)}>
           <SendIcon data-icon="inline-start" />
-          Demanar ofertes
+          {demanades ? "Sol·licituds preparades · Jennifer" : "Demanar ofertes"}
         </Button>
       </div>
       {comparatiuNormalitzat.map((c) => (
@@ -186,7 +187,7 @@ function OfertaFila({
       disabled={bloquejada}
       aria-pressed={seleccionada}
       className={cn(
-        "grid w-full gap-x-6 gap-y-3 rounded-tile p-3 text-left ring-1 transition-colors disabled:cursor-default md:grid-cols-[minmax(0,1fr)_auto] md:items-center",
+        "grid w-full gap-x-6 gap-y-3 rounded-tile p-3 text-left ring-1 transition-colors disabled:cursor-default @2xl:grid-cols-[minmax(0,1fr)_auto] @2xl:items-center",
         seleccionada
           ? "bg-surface-inset ring-foreground/25"
           : "ring-surface-border hover:bg-surface-hover",
@@ -221,7 +222,7 @@ function OfertaFila({
           )}
         </div>
       </div>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 md:flex-col md:items-end">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 @2xl:flex-col @2xl:items-end">
         <div className="flex items-baseline gap-1.5 font-mono text-caption tabular-nums">
           <span className="text-muted-foreground">{eurPrecise(o.preu)}</span>
           {o.ajust ? (

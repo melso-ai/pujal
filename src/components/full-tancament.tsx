@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { CheckIcon, RotateCcwIcon, SaveIcon, SendIcon } from "lucide-react";
+
+import { preuTancament, useTancament, type VariablesTancament } from "@/components/estudi/tancament-store";
+import { Button } from "@/components/ui/button";
 
 import { Stat } from "@/components/stat";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +13,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardFooter,
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,30 +30,46 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  costDirecteEstudi,
   costPersonaMes,
   despesesGenerals,
   indirectesMensuals,
 } from "@/lib/data";
 import { eur, pct } from "@/lib/format";
 
-export function FullTancament() {
-  const [mesos, setMesos] = useState(14);
-  const [persones, setPersones] = useState(3);
-  const [preuBase, setPreuBase] = useState(4_104_000);
-  const [acompanyar, setAcompanyar] = useState(false);
+export function FullTancament({ estudiId = "placa-major", preuInicial = 4_104_000 }: { estudiId?: string; preuInicial?: number }) {
+  const { values, save } = useTancament(estudiId, preuInicial);
+  const [missatge, setMissatge] = useState("");
+  return <CalculTancament key={JSON.stringify(values)} inicial={values} save={save} preuInicial={preuInicial} missatge={missatge} setMissatge={setMissatge} />;
+}
 
-  const preu = acompanyar ? Math.round(preuBase * 1.1) : preuBase;
+function CalculTancament({ inicial, save, preuInicial, missatge, setMissatge }: {
+  inicial: VariablesTancament;
+  save: (v: VariablesTancament) => boolean;
+  preuInicial: number;
+  missatge: string;
+  setMissatge: (message: string) => void;
+}) {
+  const [mesos, setMesos] = useState(inicial.mesos);
+  const [persones, setPersones] = useState(inicial.persones);
+  const [preuBase, setPreuBase] = useState(inicial.preuBase);
+  const [acompanyar, setAcompanyar] = useState(inicial.acompanyar);
+  const costDirecteEstudi = Math.round(preuInicial / 1.2);
+  const variables = { mesos, persones, preuBase, acompanyar, revisio: inicial.revisio };
+  const canviat = mesos !== inicial.mesos || persones !== inicial.persones || preuBase !== inicial.preuBase || acompanyar !== inicial.acompanyar;
+  const valid = mesos >= 1 && persones >= 0 && preuBase > 0;
+  const preu = preuTancament(variables);
   const indMensual = indirectesMensuals.reduce((s, i) => s + i.import, 0);
   const indirectes = mesos * indMensual + persones * mesos * costPersonaMes;
   const dg = preu * despesesGenerals;
   const benefici = preu - costDirecteEstudi - indirectes - dg;
   const k = preu / costDirecteEstudi;
-  const net = (benefici / preu) * 100;
-  const dinsObjectiu = net >= 2 && net <= 3.5;
+  const net = preu > 0 ? (benefici / preu) * 100 : 0;
+  const brut = preu > 0 ? ((preu - costDirecteEstudi - indirectes) / preu) * 100 : 0;
+  const dinsObjectiu = brut >= 20;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+    <div className="@container min-w-0">
+    <div className="grid min-w-0 gap-4 @3xl:grid-cols-[minmax(0,280px)_minmax(0,1fr)]">
       <Card>
         <CardHeader>
           <CardTitle>Variables</CardTitle>
@@ -62,7 +83,7 @@ export function FullTancament() {
               type="number"
               min={1}
               value={mesos}
-              onChange={(e) => setMesos(Number(e.target.value) || 0)}
+              onChange={(e) => setMesos(Math.max(0, Math.floor(Number(e.target.value)) || 0))}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -72,7 +93,7 @@ export function FullTancament() {
               type="number"
               min={0}
               value={persones}
-              onChange={(e) => setPersones(Number(e.target.value) || 0)}
+              onChange={(e) => setPersones(Math.max(0, Math.floor(Number(e.target.value)) || 0))}
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -81,8 +102,9 @@ export function FullTancament() {
               id="preu"
               type="number"
               step={1000}
+              min={1}
               value={preuBase}
-              onChange={(e) => setPreuBase(Number(e.target.value) || 0)}
+              onChange={(e) => setPreuBase(Math.max(0, Number(e.target.value)) || 0)}
             />
           </div>
           <Separator />
@@ -93,31 +115,48 @@ export function FullTancament() {
             />
             Acompanyar (+10%)
           </Label>
+          {!valid && <p className="text-caption text-destructive" role="alert">Indica almenys 1 mes i un preu superior a 0 €.</p>}
         </CardContent>
+        <CardFooter className="flex-wrap gap-2 border-t">
+          <Button disabled={!valid} onClick={() => {
+            if (save({ ...variables, revisio: false })) setMissatge("Variables desades · oferta actualitzada");
+            else setMissatge("No s'ha pogut desar. Torna-ho a provar.");
+          }}><SaveIcon data-icon="inline-start" />Desar</Button>
+          <Button variant="ghost" aria-label="Restablir variables inicials" onClick={() => {
+            setMesos(14); setPersones(3); setPreuBase(preuInicial); setAcompanyar(false);
+            setMissatge("Variables restablertes · desa per aplicar-les");
+          }}><RotateCcwIcon data-icon="inline-start" />Restablir</Button>
+          {missatge && <p className="w-full text-caption text-muted-foreground" role="status">{missatge}</p>}
+        </CardFooter>
       </Card>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-4">
         <Card>
           <CardContent className="flex flex-wrap items-end gap-x-12 gap-y-4">
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">K de pas</span>
+              <span className="text-caption text-muted-foreground">Marge brut</span>
               <span className="font-mono text-5xl font-medium tracking-tight tabular-nums">
-                {k.toFixed(2)}
+                {valid ? pct(brut) : "—"}
               </span>
+              <Badge variant="outline" className={dinsObjectiu ? "text-success" : "text-warning"}>
+                {dinsObjectiu ? "Objectiu ≥20% assolit" : "Objectiu ≥20%"}
+              </Badge>
             </div>
-            <Stat
-              label="Benefici net"
-              value={pct(net)}
-              hint={
-                <Badge variant={dinsObjectiu ? "secondary" : "destructive"}>
-                  {dinsObjectiu ? "Dins objectiu 2–3%" : "Fora d'objectiu"}
-                </Badge>
-              }
-            />
+            <Stat label="K de pas" value={valid ? k.toFixed(2) : "—"} />
+            <Stat label="Marge després de generals" value={valid ? pct(net) : "—"} />
             <Stat label="Preu d'oferta" value={eur(preu)} />
           </CardContent>
         </Card>
 
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-tile bg-surface-inset p-3">
+          <span className="text-label text-muted-foreground">{canviat ? "Canvis sense desar" : inicial.revisio ? "Pendent de signatura · Benito" : "Jennifer · esborrany de tancament"}</span>
+          <Button variant="outline" disabled={!valid || (inicial.revisio && !canviat)} onClick={() => {
+            setMissatge(save({ ...variables, revisio: true }) ? "Revisió preparada per a Benito" : "No s'ha pogut desar. Torna-ho a provar.");
+          }}>
+            {inicial.revisio ? <CheckIcon data-icon="inline-start" /> : <SendIcon data-icon="inline-start" />}
+            {inicial.revisio ? "Revisió preparada" : "Preparar per a Benito"}
+          </Button>
+        </div>
         <Card>
           <CardContent>
             <Table>
@@ -134,7 +173,7 @@ export function FullTancament() {
                 </TableRow>
                 {indirectesMensuals.map((i) => (
                   <TableRow key={i.concepte}>
-                    <TableCell className="font-sans text-muted-foreground">
+                    <TableCell className="whitespace-normal font-sans text-muted-foreground">
                       {i.concepte} · {mesos} mesos
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
@@ -143,7 +182,7 @@ export function FullTancament() {
                   </TableRow>
                 ))}
                 <TableRow>
-                  <TableCell className="font-sans text-muted-foreground">
+                  <TableCell className="whitespace-normal font-sans text-muted-foreground">
                     Personal · {persones} × {mesos} mesos
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
@@ -171,6 +210,7 @@ export function FullTancament() {
           </CardContent>
         </Card>
       </div>
+    </div>
     </div>
   );
 }
