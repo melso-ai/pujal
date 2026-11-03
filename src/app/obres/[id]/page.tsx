@@ -5,7 +5,6 @@ import {
   CheckIcon,
   CircleIcon,
   FileSignatureIcon,
-  SparklesIcon,
 } from "lucide-react";
 
 import { EstatBadge } from "@/components/estat-badge";
@@ -82,12 +81,7 @@ async function Obra({ params }: { params: PageProps<"/obres/[id]">["params"] }) 
 
   return (
     <>
-      <PageHeader crumbs={[{ label: "Obres", href: "/" }, { label: obra.nom }]}>
-        <Button size="sm" variant="outline">
-          <SparklesIcon data-icon="inline-start" />
-          Assistent
-        </Button>
-      </PageHeader>
+      <PageHeader crumbs={[{ label: "Obres", href: "/" }, { label: obra.nom }]} />
 
       <div className="flex flex-col gap-8 p-4 md:p-8">
         <div className="flex flex-col gap-4">

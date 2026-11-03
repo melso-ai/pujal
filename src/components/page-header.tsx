@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Fragment } from "react";
 
+import { AskButton } from "@/components/chat/ask-launchers";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,7 +10,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 type Crumb = { label: string; href?: string };
@@ -22,11 +22,10 @@ export function PageHeader({
   children?: React.ReactNode;
 }) {
   return (
-    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur">
-      <SidebarTrigger className="-ml-1" />
-      <Separator orientation="vertical" className="mr-2 h-4 self-center!" />
+    <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 bg-page-canvas/80 px-4 backdrop-blur">
+      <SidebarTrigger className="-ml-1 text-muted-foreground" />
       <Breadcrumb>
-        <BreadcrumbList>
+        <BreadcrumbList className="text-label">
           {crumbs.map((c, i) => (
             <Fragment key={c.label}>
               {i > 0 && <BreadcrumbSeparator />}
@@ -43,7 +42,10 @@ export function PageHeader({
           ))}
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="ml-auto flex items-center gap-2">{children}</div>
+      <div className="ml-auto flex items-center gap-2">
+        {children}
+        <AskButton />
+      </div>
     </header>
   );
 }

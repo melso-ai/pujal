@@ -6,7 +6,6 @@ import {
   DownloadIcon,
   FileTextIcon,
   SendIcon,
-  SparklesIcon,
 } from "lucide-react";
 
 import { FullTancament } from "@/components/full-tancament";
@@ -79,12 +78,7 @@ async function Estudi({
           { label: "Pressupostos", href: "/pressupostos" },
           { label: estudi.nom },
         ]}
-      >
-        <Button size="sm" variant="outline">
-          <SparklesIcon data-icon="inline-start" />
-          Assistent
-        </Button>
-      </PageHeader>
+       />
 
       <div className="flex flex-col gap-8 p-4 md:p-8">
         <div className="flex flex-col gap-6">

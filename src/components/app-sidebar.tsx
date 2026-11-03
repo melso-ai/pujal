@@ -8,10 +8,9 @@ import {
   CalculatorIcon,
   DatabaseIcon,
   HardHatIcon,
-  ReceiptIcon,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { MelsoMark } from "@/components/chat/melso-mark";
 import {
   Sidebar,
   SidebarContent,
@@ -35,9 +34,12 @@ const nav = [
 
 const properament = [
   { label: "Industrials", icon: HardHatIcon },
-  { label: "Comptabilitat", icon: ReceiptIcon },
   { label: "Contractes", icon: BookOpenIcon },
 ];
+
+// Melso's nav button: muted until active, active keeps its fill on hover.
+const NAV_BUTTON_CLASS =
+  "rounded-[0.6rem] text-muted-foreground hover:not-data-active:bg-sidebar-accent/70 data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground data-active:hover:bg-sidebar-accent";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -47,51 +49,49 @@ export function AppSidebar() {
       : pathname.startsWith(href);
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link href="/" />}>
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary font-mono text-sm font-semibold text-primary-foreground">
+            <SidebarMenuButton render={<Link href="/" />} className="h-9 rounded-[0.6rem]">
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary font-mono text-micro font-semibold text-primary-foreground">
                 P
-              </div>
-              <div className="grid leading-tight">
-                <span className="font-semibold">Pujal</span>
-                <span className="text-xs text-muted-foreground">
-                  Construccions
-                </span>
-              </div>
+              </span>
+              <span className="text-body font-semibold">Pujal</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="py-0">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {nav.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     tooltip={item.label}
                     isActive={isActive(item.href)}
                     render={<Link href={item.href} />}
+                    className={NAV_BUTTON_CLASS}
                   >
                     <item.icon />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
-                  {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                  {item.badge && (
+                    <SidebarMenuBadge className="text-caption text-brand-text">{item.badge}</SidebarMenuBadge>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup>
+        <SidebarGroup className="mt-3 py-0">
           <SidebarGroupLabel>Properament</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {properament.map((item) => (
                 <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton tooltip={item.label} disabled>
+                  <SidebarMenuButton tooltip={item.label} disabled className={NAV_BUTTON_CLASS}>
                     <item.icon />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
@@ -102,10 +102,9 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="px-2 pb-1 group-data-[collapsible=icon]:hidden">
-          <Badge variant="outline" className="font-mono">
-            Prototip · v0.1
-          </Badge>
+        <div className="flex items-center gap-2 px-2 pb-1 text-caption text-faint-foreground group-data-[collapsible=icon]:hidden">
+          <MelsoMark className="h-3 w-auto text-brand" />
+          <span>Prototip amb Melso · v0.2</span>
         </div>
       </SidebarFooter>
       <SidebarRail />
