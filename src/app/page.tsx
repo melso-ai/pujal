@@ -89,6 +89,7 @@ export default function AvuiPage() {
           <Stat label="Estudis" value={estudis.length} />
           <Stat label="Proper lliurament" value={date(enCurs[0].lliurament)} />
           <Stat label="Al comparatiu" value={estudis.filter((e) => e.etapa === 2).length} />
+          <Stat label="Temps per estudi" value="2 mesos → 2 setm." />
         </div>
 
         <section className="flex flex-col gap-3">

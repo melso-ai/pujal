@@ -255,7 +255,7 @@ function Targeta({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <Link href={`/industrials/${p.id}`} className="truncate text-body font-medium hover:underline">
+          <Link href={`/industrials/${p.id}`} className="text-body font-medium hover:underline">
             {p.complet}
           </Link>
           <span className="text-caption text-muted-foreground">{titol}</span>

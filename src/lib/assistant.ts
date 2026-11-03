@@ -56,7 +56,7 @@ export function suggestionsFor(pathname: string): string[] {
     return [
       "Redacta el correu a Besolí capítol a capítol",
       "Per què no adjudiquem a EFHYS si és més barat?",
-      "Quant estalviaríem fent això a tots els gremis?",
+      "Quines altres famílies podem negociar així?",
     ];
   if (estudiId === "pedrasses")
     return [
