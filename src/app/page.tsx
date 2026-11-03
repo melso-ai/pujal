@@ -75,7 +75,7 @@ export default function AvuiPage() {
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 p-4 md:p-8">
         <div className="flex flex-col gap-1">
           <span className="text-label text-muted-foreground">Dimarts, 3 de novembre</span>
-          <h1 className="text-display-sm font-semibold tracking-tight">Bon dia, Jennifer</h1>
+          <h1 className="text-display-sm font-semibold tracking-tight">Bon dia, Marta</h1>
         </div>
 
         <div className="flex flex-wrap items-end gap-x-12 gap-y-6">

@@ -16,6 +16,7 @@ import {
 
 import { MelsoMark } from "@/components/chat/melso-mark";
 import { OPEN_COMMAND_EVENT } from "@/components/command-menu";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Kbd } from "@/components/ui/kbd";
 import {
   Sidebar,
@@ -130,9 +131,10 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex items-center gap-2 px-2 pb-1 text-caption text-faint-foreground group-data-[collapsible=icon]:hidden">
-          <MelsoMark className="h-3 w-auto text-brand" />
-          <span>Prototip amb Melso · v0.3</span>
+        <div className="flex items-center gap-2 pb-1 pl-2 text-caption text-faint-foreground group-data-[collapsible=icon]:hidden">
+          <MelsoMark className="h-3 w-auto shrink-0 text-brand" />
+          <span className="truncate">Prototip amb Melso · v0.4</span>
+          <ThemeSwitcher className="ml-auto shrink-0" />
         </div>
       </SidebarFooter>
       <SidebarRail />

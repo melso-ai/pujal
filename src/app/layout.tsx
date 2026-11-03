@@ -7,6 +7,7 @@ import { ChatProvider } from "@/components/chat/chat-provider";
 import { CommandMenu } from "@/components/command-menu";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,7 +31,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="ca"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="h-full">
         <TooltipProvider>
           <SidebarProvider className="h-svh bg-app-shell">

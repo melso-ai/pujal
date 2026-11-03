@@ -4,7 +4,7 @@
 
 /* Tokens and type scale ported from Melso (packages/ui/styles/tokens.css). */
 
-@custom-variant dark (@media (prefers-color-scheme: dark));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --font-heading: var(--font-sans);
@@ -139,41 +139,39 @@
   --warning: #9a5b00;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --app-shell: #171717;
-    --page-canvas: #0a0a0a;
-    --surface: #171717;
-    --surface-raised: #1c1c1c;
-    --surface-inset: #0f0f0f;
-    --surface-hover: rgba(255, 255, 255, 0.06);
-    --surface-border: rgba(255, 255, 255, 0.1);
-    --surface-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px -4px rgba(0, 0, 0, 0.4);
-    --foreground: #fafafa;
-    --primary: #e5e5e5;
-    --primary-foreground: #171717;
-    --secondary: #262626;
-    --secondary-foreground: #fafafa;
-    --muted: #262626;
-    --muted-foreground: #a1a1a1;
-    --faint-foreground: #7a7a7a;
-    --accent: #262626;
-    --accent-foreground: #fafafa;
-    --destructive: #f59a8e;
-    --border: rgba(255, 255, 255, 0.1);
-    --input: rgba(255, 255, 255, 0.15);
-    --ring: #737373;
-    --chart-2: #d4d4d4;
-    --chart-3: #a3a3a3;
-    --chart-4: #737373;
-    --chart-5: #525252;
-    --sidebar-accent: #262626;
-    --brand-text: #f48171;
-    --brand-soft: rgba(240, 78, 66, 0.18);
-    --success: #a7ddb5;
-    --warning: #f4c97a;
-  }
+.dark {
+  color-scheme: dark;
+  --app-shell: #171717;
+  --page-canvas: #0a0a0a;
+  --surface: #171717;
+  --surface-raised: #1c1c1c;
+  --surface-inset: #0f0f0f;
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --surface-border: rgba(255, 255, 255, 0.1);
+  --surface-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px -4px rgba(0, 0, 0, 0.4);
+  --foreground: #fafafa;
+  --primary: #e5e5e5;
+  --primary-foreground: #171717;
+  --secondary: #262626;
+  --secondary-foreground: #fafafa;
+  --muted: #262626;
+  --muted-foreground: #a1a1a1;
+  --faint-foreground: #7a7a7a;
+  --accent: #262626;
+  --accent-foreground: #fafafa;
+  --destructive: #f59a8e;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #737373;
+  --chart-2: #d4d4d4;
+  --chart-3: #a3a3a3;
+  --chart-4: #737373;
+  --chart-5: #525252;
+  --sidebar-accent: #262626;
+  --brand-text: #f48171;
+  --brand-soft: rgba(240, 78, 66, 0.18);
+  --success: #a7ddb5;
+  --warning: #f4c97a;
 }
 
 @layer base {
