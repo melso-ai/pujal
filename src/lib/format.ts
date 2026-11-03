@@ -24,3 +24,9 @@ export function date(iso: string) {
     year: "numeric",
   });
 }
+
+export function eurCompact(n: number) {
+  if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toLocaleString("ca-AD", { maximumFractionDigits: 2 })} M€`;
+  if (Math.abs(n) >= 10_000) return `${Math.round(n / 1000).toLocaleString("ca-AD")} k€`;
+  return eur(n);
+}

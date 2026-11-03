@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import { EstatBadge } from "@/components/estat-badge";
+import { AskAction } from "@/components/chat/ask-action";
 import { PageHeader } from "@/components/page-header";
 import { Stat } from "@/components/stat";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -81,7 +82,7 @@ async function Obra({ params }: { params: PageProps<"/obres/[id]">["params"] }) 
 
   return (
     <>
-      <PageHeader crumbs={[{ label: "Obres", href: "/" }, { label: obra.nom }]} />
+      <PageHeader crumbs={[{ label: "Obres", href: "/obres" }, { label: obra.nom }]} />
 
       <div className="flex flex-col gap-8 p-4 md:p-8">
         <div className="flex flex-col gap-4">
@@ -158,25 +159,27 @@ async function Obra({ params }: { params: PageProps<"/obres/[id]">["params"] }) 
                   <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-destructive" />
                   <span>{pendents.length} factures pendents d&apos;aprovar</span>
                 </div>
-                <Button size="xs" variant="outline">
+                <AskAction size="xs" variant="outline" prompt="Quines factures falten per aprovar i què he de mirar a cadascuna?">
                   Revisar
-                </Button>
+                </AskAction>
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex gap-2">
                   <FileSignatureIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                   <span>{senseSignar.length} contractes sense signar</span>
                 </div>
-                <Button size="xs" variant="outline">
+                <AskAction size="xs" variant="outline" prompt="Redacta un correu a Clima Valira perquè signin el contracte">
                   Enviar
-                </Button>
+                </AskAction>
               </div>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex gap-2">
                   <CheckIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                   <span>Certificació de novembre a punt</span>
                 </div>
-                <Button size="xs">Validar</Button>
+                <AskAction size="xs" prompt={`Prepara la certificació de novembre de ${obra.nom} i redacta el correu a l'arquitecte perquè la validi`}>
+                  Validar
+                </AskAction>
               </div>
             </CardContent>
           </Card>

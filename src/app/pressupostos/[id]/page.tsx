@@ -8,6 +8,7 @@ import {
   SendIcon,
 } from "lucide-react";
 
+import { Comparatiu } from "@/components/estudi/comparatiu";
 import { FullTancament } from "@/components/full-tancament";
 import { PageHeader } from "@/components/page-header";
 import { Stat } from "@/components/stat";
@@ -22,7 +23,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -36,7 +36,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   capitols,
-  comparatiu,
   costDirecteEstudi,
   discrepancies,
   documentsArquitecte,
@@ -248,78 +247,8 @@ async function Estudi({
             </Card>
           </TabsContent>
 
-          <TabsContent value="Comparatiu" className="flex flex-col gap-4 pt-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm text-muted-foreground">
-                Ofertes llegides automàticament de PDF i Excel
-              </p>
-              <Button size="sm" variant="outline">
-                <SendIcon data-icon="inline-start" />
-                Demanar ofertes
-              </Button>
-            </div>
-            {comparatiu.map((c) => {
-              const millor = Math.min(...c.ofertes.map((o) => o.preu));
-              return (
-                <Card key={c.partida}>
-                  <CardHeader>
-                    <CardTitle>
-                      <span className="mr-2 font-mono text-muted-foreground">
-                        {c.partida}
-                      </span>
-                      {c.descripcio}
-                    </CardTitle>
-                    <CardDescription>
-                      Referència {eurPrecise(c.preuRef)}/{c.unitat}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-0" />
-                          <TableHead>Industrial</TableHead>
-                          <TableHead>Termini</TableHead>
-                          <TableHead>Origen</TableHead>
-                          <TableHead />
-                          <TableHead className="text-right">Preu</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {c.ofertes.map((o) => (
-                          <TableRow key={o.industrial}>
-                            <TableCell>
-                              <Checkbox defaultChecked={o.preu === millor} />
-                            </TableCell>
-                            <TableCell className="font-medium">{o.industrial}</TableCell>
-                            <TableCell className="text-muted-foreground">{o.termini}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="font-mono">
-                                {o.format}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {o.nota && (
-                                <Badge variant="destructive">
-                                  <AlertTriangleIcon data-icon="inline-start" />
-                                  {o.nota}
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right font-mono tabular-nums">
-                              {o.preu === millor && (
-                                <Badge className="mr-2">Millor</Badge>
-                              )}
-                              {eurPrecise(o.preu)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <TabsContent value="Comparatiu" className="pt-4">
+            <Comparatiu />
           </TabsContent>
 
           <TabsContent value="Tancament" className="pt-4">

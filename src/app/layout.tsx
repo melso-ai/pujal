@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { AskComposer } from "@/components/chat/ask-launchers";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { ChatProvider } from "@/components/chat/chat-provider";
+import { CommandMenu } from "@/components/command-menu";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 <AskComposer />
               </SidebarInset>
               <ChatPanel />
+              <CommandMenu />
             </ChatProvider>
           </SidebarProvider>
         </TooltipProvider>

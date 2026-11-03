@@ -19,7 +19,7 @@ export default function PressupostosPage() {
   return (
     <>
       <PageHeader crumbs={[{ label: "Pressupostos" }]}>
-        <Button size="sm">
+        <Button size="sm" nativeButton={false} render={<Link href="/pressupostos/nou" />}>
           <PlusIcon data-icon="inline-start" />
           Nou estudi
         </Button>

@@ -8,9 +8,15 @@ import {
   CalculatorIcon,
   DatabaseIcon,
   HardHatIcon,
+  HouseIcon,
+  PlusIcon,
+  SearchIcon,
+  TagIcon,
 } from "lucide-react";
 
 import { MelsoMark } from "@/components/chat/melso-mark";
+import { OPEN_COMMAND_EVENT } from "@/components/command-menu";
+import { Kbd } from "@/components/ui/kbd";
 import {
   Sidebar,
   SidebarContent,
@@ -27,8 +33,10 @@ import {
 } from "@/components/ui/sidebar";
 
 const nav = [
-  { href: "/", label: "Obres", icon: Building2Icon },
-  { href: "/pressupostos", label: "Pressupostos", icon: CalculatorIcon, badge: "6" },
+  { href: "/", label: "Avui", icon: HouseIcon, badge: "5" },
+  { href: "/pressupostos", label: "Pressupostos", icon: CalculatorIcon },
+  { href: "/preus", label: "Preus", icon: TagIcon },
+  { href: "/obres", label: "Obres", icon: Building2Icon },
   { href: "/dades", label: "Dades", icon: DatabaseIcon },
 ];
 
@@ -44,13 +52,11 @@ const NAV_BUTTON_CLASS =
 export function AppSidebar() {
   const pathname = usePathname();
   const isActive = (href: string) =>
-    href === "/"
-      ? pathname === "/" || pathname.startsWith("/obres")
-      : pathname.startsWith(href);
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <Sidebar variant="inset" collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader className="gap-1">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton render={<Link href="/" />} className="h-9 rounded-[0.6rem]">
@@ -58,6 +64,30 @@ export function AppSidebar() {
                 P
               </span>
               <span className="text-body font-semibold">Pujal</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        <SidebarMenu className="gap-0.5">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Cercar"
+              className={NAV_BUTTON_CLASS}
+              onClick={() => window.dispatchEvent(new Event(OPEN_COMMAND_EVENT))}
+            >
+              <SearchIcon />
+              <span>Cercar</span>
+              <Kbd className="ml-auto group-data-[collapsible=icon]:hidden">⌘K</Kbd>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Nou estudi"
+              isActive={pathname === "/pressupostos/nou"}
+              render={<Link href="/pressupostos/nou" />}
+              className={NAV_BUTTON_CLASS}
+            >
+              <PlusIcon />
+              <span>Nou estudi</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -70,7 +100,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     tooltip={item.label}
-                    isActive={isActive(item.href)}
+                    isActive={isActive(item.href) && pathname !== "/pressupostos/nou"}
                     render={<Link href={item.href} />}
                     className={NAV_BUTTON_CLASS}
                   >
@@ -104,7 +134,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <div className="flex items-center gap-2 px-2 pb-1 text-caption text-faint-foreground group-data-[collapsible=icon]:hidden">
           <MelsoMark className="h-3 w-auto text-brand" />
-          <span>Prototip amb Melso · v0.2</span>
+          <span>Prototip amb Melso · v0.3</span>
         </div>
       </SidebarFooter>
       <SidebarRail />

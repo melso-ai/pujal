@@ -1,5 +1,6 @@
 "use client";
 
+import { useChat as useAIChat } from "@ai-sdk/react";
 import { usePathname } from "next/navigation";
 import {
   createContext,
@@ -12,24 +13,21 @@ import {
 } from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";
-import { answer, type Reply } from "@/lib/assistant";
-
-export type Message =
-  | { id: number; role: "user"; text: string }
-  | { id: number; role: "assistant"; reply?: Reply };
+import type { ChatMessage } from "@/app/api/chat/route";
 
 type ChatState = {
   open: boolean;
-  messages: Message[];
+  messages: ChatMessage[];
+  busy: boolean;
+  error: Error | undefined;
   openChat: () => void;
   closeChat: () => void;
   send: (text: string) => void;
+  retry: () => void;
   reset: () => void;
 };
 
 const ChatContext = createContext<ChatState | null>(null);
-
-const REPLY_DELAY_MS = 700;
 
 export function useChat() {
   const chat = use(ChatContext);
@@ -41,8 +39,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isMobile, open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const nextId = useRef(0);
+  const { messages, sendMessage, status, error, regenerate, setMessages, stop } =
+    useAIChat<ChatMessage>();
   // The panel borrows the nav's space while open, like Melso's Ask panel.
   const parkedSidebar = useRef(false);
 
@@ -66,23 +64,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     (text: string) => {
       const question = text.trim();
       if (!question) return;
-      const userId = nextId.current++;
-      const replyId = nextId.current++;
-      const reply = answer(question, pathname);
-      setMessages((m) => [
-        ...m,
-        { id: userId, role: "user", text: question },
-        { id: replyId, role: "assistant" },
-      ]);
-      setTimeout(() => {
-        setMessages((m) => m.map((msg) => (msg.id === replyId ? { ...msg, reply } : msg)));
-      }, REPLY_DELAY_MS);
+      void sendMessage({ text: question }, { body: { pathname } });
       openChat();
     },
-    [pathname, openChat]
+    [sendMessage, pathname, openChat]
   );
 
-  const reset = useCallback(() => setMessages([]), []);
+  const retry = useCallback(() => {
+    void regenerate({ body: { pathname } });
+  }, [regenerate, pathname]);
+
+  const reset = useCallback(() => {
+    void stop();
+    setMessages([]);
+  }, [stop, setMessages]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -98,9 +93,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, openChat, closeChat]);
 
+  const busy = status === "submitted" || status === "streaming";
+
   const value = useMemo(
-    () => ({ open, messages, openChat, closeChat, send, reset }),
-    [open, messages, openChat, closeChat, send, reset]
+    () => ({ open, messages, busy, error, openChat, closeChat, send, retry, reset }),
+    [open, messages, busy, error, openChat, closeChat, send, retry, reset]
   );
 
   return <ChatContext value={value}>{children}</ChatContext>;
