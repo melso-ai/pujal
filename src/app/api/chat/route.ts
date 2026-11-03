@@ -17,6 +17,8 @@ import {
   contractesPendents,
   dadesPendents,
   detallObra,
+  electricPedrasses,
+  ofertesPedrasses,
   discrepanciesAmidaments,
   estudisEnCurs,
   facturesPendents,
@@ -27,6 +29,7 @@ import {
   resumObres,
 } from "@/lib/assistant";
 import { obres } from "@/lib/data";
+import { families } from "@/lib/pedrasses";
 import { elements } from "@/lib/preus";
 
 export const maxDuration = 60;
@@ -93,6 +96,19 @@ const tools = {
     inputSchema: noInput,
     execute: async () => oportunitatsVolum(),
   }),
+  ofertesPedrasses: tool({
+    description:
+      "Ofertes reals rebudes per a l'estudi Xalets Les Pedrasses (2 habitatges, P25), llegides dels PDF i Excel dels industrials. Sense família: resum per famílies; amb família (codi Pujal com SUB.25): detall de cada oferta amb abast i exclusions.",
+    inputSchema: z.object({
+      familia: z.enum(Object.keys(families) as [string, ...string[]]).optional(),
+    }),
+    execute: async ({ familia }) => ofertesPedrasses(familia),
+  }),
+  electricPedrasses: tool({
+    description: "Comparatiu línia a línia de l'electricitat de Xalets Les Pedrasses: Besoli vs EFHYS, partides omeses i preu normalitzat.",
+    inputSchema: noInput,
+    execute: async () => electricPedrasses(),
+  }),
   dadesPendents: tool({
     description: "Fonts de dades que falten per començar el projecte (accés SQL, exemples, etc.).",
     inputSchema: noInput,
@@ -120,6 +136,7 @@ function systemPrompt(pathname: string) {
       : `L'usuari és a ${pathname}.`;
   return [
     "Ets l'assistent de Construccions Pujal (constructora d'Andorra) dins del seu ERP, fet per Melso.",
+    "L'estudi real en curs és Xalets Les Pedrasses (2 habitatges adossats a la P25, La Massana; arquitecte Moisès Pernía, instal·lacions Engix); la resta d'obres i estudis són de mostra.",
     "Avui és 3 de novembre de 2026. La responsable d'estudis és la Jennifer; la direcció signa en Benito.",
     here,
     "Fes servir sempre les eines per a qualsevol xifra; no inventis dades. Les dades són de mostra.",

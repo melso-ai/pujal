@@ -35,6 +35,8 @@ const TOOL_LABELS: Record<string, string> = {
   redactarCorreu: "Redactant el correu",
   preuReferencia: "Buscant preus tancats",
   oportunitatsVolum: "Buscant volum a agrupar",
+  ofertesPedrasses: "Llegint les ofertes de Pedrasses",
+  electricPedrasses: "Comparant Besoli i EFHYS línia a línia",
 };
 
 type Email = { per: string; assumpte: string; cos: string };

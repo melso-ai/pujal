@@ -15,6 +15,7 @@ import {
   passosAprovacio,
 } from "@/lib/data";
 import { date, eur, eurPrecise, pct } from "@/lib/format";
+import { comparatiuElectric, families, ofertes } from "@/lib/pedrasses";
 import { pctSigne, preu, resumElement, resumPreus, volumLabel } from "@/lib/preus";
 
 // Tool results double as UI cards: the chat renders `rows` and `links` as-is.
@@ -39,6 +40,12 @@ export function suggestionsFor(pathname: string): string[] {
       "Com va el marge d'aquesta obra?",
       "Quines factures falten per aprovar?",
       "Redacta un correu a Clima Valira perquè signin el contracte",
+    ];
+  if (estudiId === "pedrasses")
+    return [
+      "Quina oferta d'electricitat és realment més barata?",
+      "Compara les ofertes de cuina",
+      "Quines famílies no tenen cap oferta?",
     ];
   if (estudiId)
     return [
@@ -128,7 +135,7 @@ export function estudisEnCurs(): Card {
     rows: sorted.map((e) => ({
       label: e.nom,
       value: date(e.lliurament),
-      hint: `${etapesEstudi[e.etapa]} · ${eur(e.importEstimat)}`,
+      hint: `${etapesEstudi[e.etapa]} · ${e.importEstimat ? eur(e.importEstimat) : "import pendent"}`,
     })),
     links: [{ label: "Obrir pressupostos", href: "/pressupostos" }],
   };
@@ -219,5 +226,65 @@ export function oportunitatsVolum(): Card {
       hint: `${r.agrupar.nObres} obres · ${volumLabel(r.agrupar.volum, r.unitat)}`,
     })),
     links: [{ label: `Obrir ${top[0].nom}`, href: `/preus/${top[0].id}` }],
+  };
+}
+
+const familyName = (code: string) => (families as Record<string, string>)[code] ?? code;
+
+// Structure and masonry: the amidaments price them, but no industrial has quoted them yet.
+const SENSE_OFERTA = ["MAT.02", "MAT.08", "MAT.13", "MAO.02", "MAO.03"];
+
+export function ofertesPedrasses(familia?: string): Card {
+  if (familia) {
+    const rows = ofertes.filter((o) => o.familia === familia);
+    return {
+      title: `Xalets Les Pedrasses · ${familyName(familia)} · ${rows.length} ofertes`,
+      rows: [...rows]
+        .sort((a, b) => (a.baseImposable ?? 0) - (b.baseImposable ?? 0))
+        .map((o) => ({
+          label: `${o.industrial} · ${o.habitatges}`,
+          value: o.baseImposable ? eur(o.baseImposable) : "sense import",
+          hint: [o.abast, ...o.exclusions.slice(0, 1).map((x) => `no inclou: ${x}`)].join(" · "),
+        })),
+      links: [{ label: "Obrir comparatiu", href: "/pressupostos/pedrasses" }],
+    };
+  }
+  const byFamily = new Map<string, number[]>();
+  for (const o of ofertes) {
+    const list = byFamily.get(o.familia) ?? [];
+    if (o.baseImposable) list.push(o.baseImposable);
+    byFamily.set(o.familia, list);
+  }
+  return {
+    title: `Xalets Les Pedrasses · ${ofertes.length} ofertes · ${byFamily.size} famílies`,
+    rows: [...byFamily.entries()]
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([code, imports]) => ({
+        label: `${code} ${familyName(code)}`,
+        value: imports.length ? `${eur(Math.min(...imports))} – ${eur(Math.max(...imports))}` : "—",
+        hint: `${ofertes.filter((o) => o.familia === code).length} ofertes`,
+      }))
+      .concat({
+        label: "Sense cap oferta",
+        value: `${SENSE_OFERTA.length} famílies`,
+        hint: SENSE_OFERTA.map(familyName).join(", "),
+      }),
+    links: [{ label: "Obrir estudi", href: "/pressupostos/pedrasses" }],
+  };
+}
+
+export function electricPedrasses(): Card {
+  const c = comparatiuElectric;
+  const omes = c.omeses.reduce((s, o) => s + o.import, 0);
+  const normalitzat = c.efhys.total + omes;
+  return {
+    title: `Electricitat H1 · Besoli vs EFHYS (${c.partidesAmidament} partides Engix)`,
+    rows: [
+      { label: "Besoli", value: eur(c.besoli.total), hint: `${c.besoli.partides} partides amb preu` },
+      { label: "EFHYS en brut", value: eur(c.efhys.total), hint: `${c.efhys.partides} partides` },
+      { label: "Partides que EFHYS no cotitza", value: eur(omes), hint: `${c.omeses.length} partides a preu de Besoli` },
+      { label: "EFHYS normalitzat", value: eur(normalitzat), hint: `${normalitzat > c.besoli.total ? "+" : ""}${eur(normalitzat - c.besoli.total)} vs Besoli` },
+    ],
+    links: [{ label: "Veure comparatiu", href: "/pressupostos/pedrasses" }],
   };
 }

@@ -1,70 +1,52 @@
+import { comparatiu } from "@/lib/data";
 import {
-  comparatiu,
-  costPersonaMes,
-  despesesGenerals,
-  discrepancies,
-  indirectesMensuals,
-} from "@/lib/data";
+  capitolsArquitectura,
+  carpetes,
+  comparatiuElectric,
+  families,
+  installacions,
+  mapping,
+  ofertes,
+  partidesEstructura,
+  projecte,
+} from "@/lib/pedrasses";
 
-export type Fitxer = { nom: string; mida: string; pagines?: number };
-export type Carpeta = { id: string; nom: string; format: string; fitxers: Fitxer[] };
+export type FamiliaCodi = keyof typeof families;
+export type OfertaPedrasses = (typeof ofertes)[number];
 
-const planols: Fitxer[] = [
-  ...Array.from({ length: 24 }, (_, i) => ({
-    nom: `PL-${String(i + 1).padStart(2, "0")}_${["Emplaçament", "Fonaments", "Estructura", "Planta", "Alçats", "Seccions", "Instal·lacions", "Fusteria"][i % 8]}.pdf`,
-    mida: `${(1.2 + ((i * 7) % 18) / 10).toFixed(1)} MB`,
-    pagines: [4, 6, 5, 7, 4, 5, 6, 5][i % 8],
-  })),
-  { nom: "Canillo_planta_tipus.dwg", mida: "8,4 MB" },
-  { nom: "Canillo_estructura.dwg", mida: "6,1 MB" },
-];
+const suma = (xs: readonly number[]) => xs.reduce((s, x) => s + x, 0);
+const extensio = (nom: string) => (nom.toLowerCase().endsWith(".xlsx") ? "Excel" : "PDF");
 
-export const exempleCanillo = {
-  estudiId: "residencial-canillo",
-  nom: "Residencial Canillo",
-  arquitecte: "Estudi Riba Arquitectes",
-  superficie: 5_200,
-  lliurament: "2026-12-11",
-  carpetes: [
-    {
-      id: "memoria",
-      nom: "Memòria de qualitats",
-      format: "PDF",
-      fitxers: [
-        { nom: "Memoria_qualitats_Canillo.pdf", mida: "4,2 MB", pagines: 38 },
-        { nom: "Annex_acabats_i_cuines.pdf", mida: "2,8 MB", pagines: 12 },
-        { nom: "Fitxes_tecniques_fusteria.pdf", mida: "1,6 MB", pagines: 8 },
-      ],
-    },
-    {
-      id: "amidaments",
-      nom: "Amidaments",
-      format: "Excel · BC3",
-      fitxers: [
-        { nom: "Amidaments_Canillo_v3.xlsx", mida: "1,1 MB" },
-        { nom: "Pressupost_referencia.bc3", mida: "0,4 MB" },
-      ],
-    },
-    { id: "planols", nom: "Plànols", format: "PDF · DWG", fitxers: planols },
-  ] satisfies Carpeta[],
+export const exemplePedrasses = {
+  estudiId: projecte.id,
+  nom: projecte.nom,
+  descripcio: projecte.descripcio,
+  arquitecte: projecte.arquitecte,
+  enginyeria: projecte.enginyeria,
+  lliurament: "2026-11-13",
 };
 
+export const zones = carpetes.map((c) => ({
+  id: c.carpeta,
+  nom: c.nom,
+  carpeta: c.carpeta,
+  fitxers: c.fitxers as number,
+  exemples: [...c.exemples] as string[],
+  industrials: "industrials" in c ? c.industrials : undefined,
+  format: [...new Set(c.exemples.map(extensio))].sort().join(" · "),
+}));
+
 export const totals = {
-  carpetes: exempleCanillo.carpetes.length,
-  fitxers: exempleCanillo.carpetes.reduce((s, c) => s + c.fitxers.length, 0),
-  pagines: exempleCanillo.carpetes.reduce(
-    (s, c) => s + c.fitxers.reduce((p, f) => p + (f.pagines ?? 0), 0),
-    0
-  ),
+  fitxers: suma(zones.map((z) => z.fitxers)),
+  industrials: zones.find((z) => z.industrials)?.industrials ?? 0,
 };
 
 export const etapesRun = [
   { id: "lectura", titol: "Llegint documentació", durada: 1800 },
   { id: "partides", titol: "Estructurant partides", durada: 2600 },
-  { id: "creuament", titol: "Creuant amidaments amb plànols", durada: 1900 },
-  { id: "preus", titol: "Preus de referència", durada: 2200 },
-  { id: "ofertes", titol: "Sol·licituds d'ofertes", durada: 2100 },
-  { id: "tancament", titol: "Full de tancament preliminar", durada: 1700 },
+  { id: "ofertes", titol: "Llegint ofertes", durada: 2400 },
+  { id: "alertes", titol: "Alertes", durada: 2600 },
+  { id: "sollicituds", titol: "Sol·licituds d'ofertes", durada: 2000 },
 ] as const;
 
 export type EtapaId = (typeof etapesRun)[number]["id"];
@@ -72,115 +54,195 @@ export type EtapaId = (typeof etapesRun)[number]["id"];
 // Each demo second stands for 20 s of real processing.
 export const ESCALA_TEMPS = 20;
 
-export const capitolsPujal = [
-  { nom: "Estructura", partides: 58, families: ["Formigó", "Ferro", "Encofrat"] },
-  { nom: "Instal·lacions", partides: 71, families: ["Elèctrica", "Fontaneria", "Clima"] },
-  { nom: "Acabats", partides: 85, families: ["Fusteria", "Rajola", "Cuina", "Electrodomèstics"] },
-];
+const installacionsH1 = suma(installacions.map((i) => i.h1));
+const installacionsH2 = suma(installacions.map((i) => i.h2));
+const arquitectura = suma(capitolsArquitectura.map((c) => c.partides));
 
-export const totalPartidesRun = capitolsPujal.reduce((s, c) => s + c.partides, 0);
-
-export const mapejos = [
-  {
-    original: "Formigó per a fonaments HA-25/B/20/IIa, abocat amb bomba",
-    codi: "02.03",
-    partida: "Formigó HA-25",
-    confianca: 98,
-  },
-  {
-    original: "Acer corrugat B 500 S en barres, inclòs tall i doblegat",
-    codi: "02.07",
-    partida: "Acer B500S",
-    confianca: 97,
-  },
-  {
-    original: "Encofrat recuperable de fusta per a mur de contenció",
-    codi: "02.05",
-    partida: "Encofrat murs",
-    confianca: 94,
-  },
-  {
-    original: "Fusteria exterior d'alumini RPT amb doble vidre",
-    codi: "05.02",
-    partida: "Fusteria exterior",
-    confianca: 96,
-  },
-  {
-    original: "Instal·lació elèctrica completa habitatge tipus (partida alçada)",
-    codi: "04.01–04.03",
-    partida: "Elèctrica · 3 partides",
-    confianca: 84,
-  },
-  {
-    original: "Cuina equipada segons memòria",
-    codi: "05.11–05.12",
-    partida: "Cuina + electrodomèstics",
-    confianca: 76,
-  },
-];
-
-export const discrepanciesRun = discrepancies;
-export const impacteDiscrepancies = discrepancies.reduce((s, d) => s + d.impacte, 0);
-
-export const preusRun = {
-  ambPreu: 186,
-  obresFont: 14,
-  exemples: comparatiu.map((c) => ({
-    partida: `${c.partida} ${c.descripcio}`,
-    preu: c.preuRef,
-    unitat: c.unitat,
-    font: {
-      "02.03": "Aixovall · oct. 2026 · Formigons Andorra",
-      "02.07": "Santa Coloma · set. 2026 · Ferros Lòria",
-      "05.02": "Escola Escaldes · maig 2026 · Aluminis Ordino",
-    }[c.partida],
-  })),
+export const partides = {
+  arquitectura,
+  capitolsArquitectura: capitolsArquitectura.length,
+  estructura: partidesEstructura as number,
+  installacionsH1,
+  installacionsH2,
+  total: arquitectura + partidesEstructura + installacionsH1 + installacionsH2,
 };
 
-export const families = [
-  { nom: "Formigó", industrials: 3 },
-  { nom: "Ferro", industrials: 2 },
-  { nom: "Encofrat", industrials: 2 },
-  { nom: "Elèctrica", industrials: 3 },
-  { nom: "Fontaneria", industrials: 2 },
-  { nom: "Clima", industrials: 3 },
-  { nom: "Fusteria", industrials: 3 },
-  { nom: "Rajola", industrials: 2 },
-  { nom: "Cuina", industrials: 3 },
+export const grupsPartides = [
+  { nom: "Arquitectura", partides: arquitectura, detall: `${capitolsArquitectura.length} capítols` },
+  { nom: "Estructura", partides: partides.estructura, detall: "Pressupost estructura" },
+  { nom: "Instal·lacions H1", partides: installacionsH1, detall: projecte.enginyeria },
+  { nom: "Instal·lacions H2", partides: installacionsH2, detall: projecte.enginyeria },
 ];
 
-export const totalIndustrials = families.reduce((s, f) => s + f.industrials, 0);
-export const industrialsCartera = 16;
+export const mapejos = mapping.map((m) => ({
+  original: m.text,
+  origen: m.origen,
+  codi: m.familia,
+  partida: m.familiaNom,
+}));
+
+export const ofertesPerFamilia = (() => {
+  const grups = new Map<FamiliaCodi, OfertaPedrasses[]>();
+  for (const o of ofertes) {
+    const codi = o.familia as FamiliaCodi;
+    grups.set(codi, [...(grups.get(codi) ?? []), o]);
+  }
+  return grups;
+})();
+
+export const resumOfertes = {
+  total: ofertes.length,
+  families: ofertesPerFamilia.size,
+  ambImport: ofertes.filter((o) => o.baseImposable !== null).length,
+  excel: ofertes.filter((o) => o.format === "Excel").length,
+  pdf: ofertes.filter((o) => o.format === "PDF").length,
+};
+
+// One offer per family, largest first: a concrete sample for the run.
+export const ofertesMostra = [...ofertesPerFamilia.values()]
+  .map((list) => list.reduce((a, b) => ((b.baseImposable ?? 0) > (a.baseImposable ?? 0) ? b : a)))
+  .sort((a, b) => (b.baseImposable ?? 0) - (a.baseImposable ?? 0))
+  .slice(0, 6);
+
+const omesesImport = suma(comparatiuElectric.omeses.map((o) => o.import));
+const efhysNormalitzat = comparatiuElectric.efhys.total + omesesImport;
+
+export const electric = {
+  habitatge: comparatiuElectric.habitatge,
+  partidesAmidament: comparatiuElectric.partidesAmidament,
+  besoli: comparatiuElectric.besoli,
+  efhys: comparatiuElectric.efhys,
+  omeses: comparatiuElectric.omeses,
+  omesesImport,
+  efhysNormalitzat,
+  diferencia: efhysNormalitzat - comparatiuElectric.besoli.total,
+  diferenciaPct: ((efhysNormalitzat - comparatiuElectric.besoli.total) / comparatiuElectric.besoli.total) * 100,
+  perCapitol: comparatiuElectric.perCapitol.map((c) => ({
+    ...c,
+    capitol: c.capitol.replace(/^CAPÍTOL\s*/, ""),
+    delta: c.efhys - c.besoli,
+  })),
+  omesesPerCapitol: [...new Set(comparatiuElectric.omeses.map((o) => o.capitol))].map((capitol) => {
+    const linies = comparatiuElectric.omeses.filter((o) => o.capitol === capitol);
+    return {
+      capitol: capitol.replace(/^CAPÍTOL\s*/, ""),
+      linies: linies.length,
+      import: suma(linies.map((l) => l.import)),
+    };
+  }),
+  omesesMajors: [...comparatiuElectric.omeses].sort((a, b) => b.import - a.import),
+  linies: comparatiuElectric.linies
+    .map((l) => ({ ...l, impacte: (l.efhys - l.besoli) * l.quantitat }))
+    .sort((a, b) => Math.abs(b.impacte) - Math.abs(a.impacte)),
+};
+
+const pladur = ofertesPerFamilia.get("SUB.09") ?? [];
+const importsPladur = pladur.flatMap((o) => (o.baseImposable === null ? [] : [o.baseImposable]));
+
+export const alertaPladur = {
+  codi: "SUB.09" as const,
+  nom: families["SUB.09"],
+  ofertes: [...pladur].sort((a, b) => (a.baseImposable ?? 0) - (b.baseImposable ?? 0)),
+  min: Math.min(...importsPladur),
+  max: Math.max(...importsPladur),
+};
+
+export const alertaInstallacions = {
+  paquets: ofertesPerFamilia.get("IND.08") ?? [],
+  perOfici: [...(ofertesPerFamilia.get("IND.01") ?? []), ...(ofertesPerFamilia.get("IND.02") ?? [])].filter(
+    (o) => o.industrial !== "EFHYS"
+  ),
+};
+
+const familiesEstructura: FamiliaCodi[] = ["MAT.02", "MAT.08", "MAT.13", "MAO.02", "MAO.03"];
+
+export const familiesSenseOferta = familiesEstructura
+  .filter((codi) => !ofertesPerFamilia.has(codi))
+  .map((codi) => ({ codi, nom: families[codi] }));
+
+const fitxerEstructura =
+  zones.flatMap((z) => z.exemples).find((f) => f.includes("PRESS EST")) ?? "";
+
+const terminiOfertes = new Date(exemplePedrasses.lliurament);
+terminiOfertes.setUTCDate(terminiOfertes.getUTCDate() - 3);
 
 export const correuExemple = {
-  per: "comercial@formigonsandorra.ad",
-  assumpte: "Sol·licitud d'oferta · Residencial Canillo · Formigó",
+  per: `Cartera Pujal · ${families["MAT.02"]}`,
+  assumpte: `Sol·licitud d'oferta · ${projecte.nom} · ${families["MAT.02"]}`,
+  adjunt: fitxerEstructura,
   cos: [
     "Bon dia,",
-    "Us adjuntem els amidaments de formigó de Residencial Canillo (5.200 m²): 1.840 m³ d'HA-25 i 310 m³ d'HA-30, bombejat.",
-    "Ens podeu enviar preu i termini abans del 20 de novembre?",
+    `Us adjuntem el pressupost d'estructura de ${projecte.nom} (${projecte.descripcio.toLowerCase()}): ${partidesEstructura} partides de formigó, ferro i encofrats.`,
+    `Ens podeu enviar preu i termini abans del ${terminiOfertes.toLocaleDateString("ca-AD", { day: "numeric", month: "long", timeZone: "UTC" })}?`,
     "Gràcies,\nJennifer · Construccions Pujal",
   ],
 };
 
-const MESOS = 18;
-const PERSONES = 4;
-const NET_OBJECTIU = 0.025;
-const costDirecte = 5_240_000;
-const indirectes =
-  MESOS * indirectesMensuals.reduce((s, i) => s + i.import, 0) + PERSONES * MESOS * costPersonaMes;
-const preuOferta = (costDirecte + indirectes) / (1 - despesesGenerals - NET_OBJECTIU);
+export const alertes = [
+  {
+    id: "electric",
+    titol: `Electricitat ${electric.habitatge}: EFHYS omet ${electric.omeses.length} partides`,
+    valor: `+${Math.round(electric.diferencia).toLocaleString("ca-AD")} €`,
+  },
+  {
+    id: "pladur",
+    titol: `${alertaPladur.codi} ${alertaPladur.nom}: ${alertaPladur.ofertes.length} ofertes amb abasts diferents`,
+    valor: `×${(alertaPladur.max / alertaPladur.min).toFixed(1)}`,
+  },
+  {
+    id: "installacions",
+    titol: "Instal·lacions: paquet complet o per ofici",
+    valor: `${alertaInstallacions.paquets.length} + ${alertaInstallacions.perOfici.length}`,
+  },
+  {
+    id: "estructura",
+    titol: `Estructura: ${partidesEstructura} partides sense cap oferta`,
+    valor: "0 ofertes",
+  },
+] as const;
 
-export const tancamentRun = {
-  mesos: MESOS,
-  persones: PERSONES,
-  costDirecte,
-  indirectes,
-  despesesGenerals: preuOferta * despesesGenerals,
-  preuOferta,
-  k: preuOferta / costDirecte,
-  net: NET_OBJECTIU * 100,
+export type Cobertura = {
+  codi: FamiliaCodi;
+  nom: string;
+  ofertes: OfertaPedrasses[];
+  min: number | null;
+  max: number | null;
+  millor: OfertaPedrasses | null;
+  normalitzat: boolean;
+  abastDiferent: boolean;
+  avisos: string[];
 };
+
+export const cobertura: Cobertura[] = [...ofertesPerFamilia.entries()]
+  .map(([codi, list]) => {
+    const amb = list.filter((o) => o.baseImposable !== null);
+    const imports = amb.map((o) => o.baseImposable as number);
+    const abasts = [...new Set(list.map((o) => o.habitatges))];
+    const sensImport = list.length - amb.length;
+    const exclusions = suma(list.map((o) => o.exclusions.length));
+    const normalitzat = codi === "IND.01";
+    const besoli = list.find((o) => o.industrial.startsWith("Elèctrica Marcel Besolí"));
+    const avisos = [
+      abasts.length > 1 ? `Abast: ${abasts.join(" · ")}` : null,
+      sensImport > 0 ? `${sensImport} sense import` : null,
+      exclusions > 0 ? `${exclusions} exclusions` : null,
+    ].filter((a): a is string => a !== null);
+    return {
+      codi,
+      nom: families[codi],
+      ofertes: [...list].sort((a, b) => (a.baseImposable ?? Infinity) - (b.baseImposable ?? Infinity)),
+      min: imports.length ? Math.min(...imports) : null,
+      max: imports.length ? Math.max(...imports) : null,
+      millor: normalitzat && besoli ? besoli : amb.length ? amb.reduce((a, b) => ((b.baseImposable as number) < (a.baseImposable as number) ? b : a)) : null,
+      normalitzat,
+      abastDiferent: abasts.length > 1,
+      avisos,
+    };
+  })
+  .sort((a, b) => a.codi.localeCompare(b.codi));
+
+export const capitolsPedrasses = capitolsArquitectura;
+export const installacionsPedrasses = installacions;
 
 type Ajust = { concepte: string; import: number };
 
@@ -195,7 +257,7 @@ export type OfertaRebuda = {
   ajust?: Ajust;
 };
 
-// Pujal's partides price the complete unit (pumped concrete, placed steel, glazed window).
+// Mock studies: Pujal's partides price the complete unit (pumped concrete, placed steel, glazed window).
 const lectures: Record<string, Omit<OfertaRebuda, "industrial" | "format" | "preu" | "nota">> = {
   "Formigons Andorra": {
     rebut: "2026-10-24",
@@ -250,7 +312,7 @@ const nomsPartida: Record<string, string> = {
 };
 
 export const comparatiuNormalitzat = comparatiu.map((c) => {
-  const ofertes = c.ofertes.map((o) => {
+  const ofertesNorm = c.ofertes.map((o) => {
     const lectura = lectures[o.industrial];
     const normalitzat = o.preu + (lectura?.ajust?.import ?? 0);
     return {
@@ -263,12 +325,12 @@ export const comparatiuNormalitzat = comparatiu.map((c) => {
       delta: ((normalitzat - c.preuRef) / c.preuRef) * 100,
     };
   });
-  const millor = ofertes.reduce((a, b) => (b.normalitzat < a.normalitzat ? b : a));
-  const mesBarataBrut = ofertes.reduce((a, b) => (b.preu < a.preu ? b : a));
+  const millor = ofertesNorm.reduce((a, b) => (b.normalitzat < a.normalitzat ? b : a));
+  const mesBarataBrut = ofertesNorm.reduce((a, b) => (b.preu < a.preu ? b : a));
   return {
     ...c,
     nom: nomsPartida[c.partida] ?? c.descripcio,
-    ofertes,
+    ofertes: ofertesNorm,
     millor: millor.industrial,
     mesBarataBrut: mesBarataBrut.industrial,
   };

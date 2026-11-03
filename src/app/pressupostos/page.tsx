@@ -56,8 +56,8 @@ export default function PressupostosPage() {
                             <CardDescription>{e.arquitecte}</CardDescription>
                           </CardHeader>
                           <CardFooter className="justify-between border-t py-3 font-mono text-xs text-muted-foreground tabular-nums">
-                            <span>{eur(e.importEstimat)}</span>
-                            <span>{num(e.superficie)} m²</span>
+                            <span>{e.importEstimat > 0 ? eur(e.importEstimat) : "—"}</span>
+                            <span>{e.superficie > 0 ? `${num(e.superficie)} m²` : "—"}</span>
                           </CardFooter>
                           <div className="-mt-1 px-3 pb-3 text-xs text-muted-foreground">
                             Lliurament {date(e.lliurament)}

@@ -150,6 +150,16 @@ export type Estudi = {
 
 export const estudis: Estudi[] = [
   {
+    id: "pedrasses",
+    nom: "Xalets Les Pedrasses",
+    arquitecte: "Moisès Pernía",
+    superficie: 0,
+    importEstimat: 0,
+    etapa: 2,
+    lliurament: "2026-11-13",
+    responsable: "Jennifer",
+  },
+  {
     id: "placa-major",
     nom: "Edifici Plaça Major",
     arquitecte: "Pla & Serra",

@@ -7,31 +7,34 @@ import { TodayActions, type TodayAction } from "@/components/today-actions";
 import { Progress } from "@/components/ui/progress";
 import { discrepancies, estudis, etapesEstudi, factures, passosAprovacio } from "@/lib/data";
 import { date, eur, eurCompact } from "@/lib/format";
+import { carpetes, comparatiuElectric, ofertes } from "@/lib/pedrasses";
 import { resumElement, volumLabel } from "@/lib/preus";
 
 const pendents = factures.filter((f) => f.pas < passosAprovacio.length);
 const cuina = discrepancies.find((d) => d.partida.startsWith("05.11"));
 const formigo = resumElement("formigo-ha25")!;
+const omeses = comparatiuElectric.omeses.reduce((t, o) => t + o.import, 0);
+const efhysNormalitzat = comparatiuElectric.efhys.total + omeses - comparatiuElectric.besoli.total;
 
 const accions: TodayAction[] = [
   {
-    id: "canillo",
-    icon: "projecte",
-    title: "Projecte nou · Residencial Canillo",
-    meta: "Estudi Riba Arquitectes · 3 carpetes · ahir",
-    value: eurCompact(6_350_000),
-    action: "Començar estudi",
-    href: "/pressupostos/nou",
+    id: "pedrasses",
+    icon: "ofertes",
+    title: `Xalets Les Pedrasses · ${ofertes.length} ofertes llegides`,
+    meta: `${carpetes[2].industrials} industrials · EFHYS deixa ${comparatiuElectric.omeses.length} partides sense preu`,
+    value: `+${eur(efhysNormalitzat)}`,
+    action: "Revisar",
+    href: "/pressupostos/pedrasses",
     primary: true,
   },
   {
-    id: "fusteria",
-    icon: "ofertes",
-    title: "3 ofertes noves de fusteria exterior",
-    meta: "Edifici Plaça Major · Aluminis Ordino, Tancaments Pirineus, Fusteria Escaldes",
-    value: "402–431 €/m²",
-    action: "Comparar",
-    href: "/pressupostos/placa-major",
+    id: "estructura",
+    icon: "alerta",
+    title: "Estructura de Pedrasses sense cap oferta",
+    meta: "30 partides · formigó, ferro, encofrats, mà d'obra",
+    value: "5 famílies",
+    action: "Demanar ofertes",
+    href: "/pressupostos/pedrasses",
   },
   {
     id: "cuina",

@@ -8,6 +8,7 @@ import {
   FolderIcon,
   LoaderCircleIcon,
   MailIcon,
+  PaperclipIcon,
   PlayIcon,
   RotateCcwIcon,
   SkipForwardIcon,
@@ -19,52 +20,51 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-  capitolsPujal,
+  alertaInstallacions,
+  alertaPladur,
+  alertes,
   correuExemple,
-  discrepanciesRun,
+  electric,
   ESCALA_TEMPS,
   etapesRun,
-  exempleCanillo,
-  families,
-  impacteDiscrepancies,
-  industrialsCartera,
+  exemplePedrasses,
+  familiesSenseOferta,
+  grupsPartides,
   mapejos,
-  preusRun,
-  tancamentRun,
-  totalIndustrials,
-  totalPartidesRun,
+  ofertesMostra,
+  partides,
+  resumOfertes,
   totals,
+  zones,
   type EtapaId,
-  type Fitxer,
+  type OfertaPedrasses,
 } from "@/lib/estudi-run";
-import { date, eur, eurPrecise, num, pct } from "@/lib/format";
+import { date, eur, num } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Fase = "idle" | "running" | "done";
 type Estat = "pending" | "active" | "done";
+type Contingut = { fitxers: number; noms: string[] };
 
 const DURADA_TOTAL = etapesRun.reduce((s, e) => s + e.durada, 0);
-
-function mida(bytes: number) {
-  return bytes > 1_000_000
-    ? `${(bytes / 1_000_000).toFixed(1)} MB`
-    : `${Math.max(1, Math.round(bytes / 1000))} KB`;
-}
 
 function temps(ms: number) {
   const s = Math.round((ms / 1000) * ESCALA_TEMPS);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
+const importOferta = (o: OfertaPedrasses) =>
+  o.baseImposable === null ? "sense import" : eur(o.baseImposable);
+
 export function NouEstudi() {
-  const [carpetes, setCarpetes] = useState<Record<string, Fitxer[]>>({});
+  const [carpetes, setCarpetes] = useState<Record<string, Contingut>>({});
   const [exemple, setExemple] = useState(false);
   const [fase, setFase] = useState<Fase>("idle");
   const [actual, setActual] = useState(0);
   const [execucio, setExecucio] = useState(0);
   const [elapsed, setElapsed] = useState(0);
 
-  const llestes = exempleCanillo.carpetes.every((c) => (carpetes[c.id]?.length ?? 0) > 0);
+  const llestes = zones.every((z) => (carpetes[z.id]?.fitxers ?? 0) > 0);
 
   useEffect(() => {
     if (fase !== "running") return;
@@ -82,7 +82,9 @@ export function NouEstudi() {
   }, [fase]);
 
   const carregarExemple = () => {
-    setCarpetes(Object.fromEntries(exempleCanillo.carpetes.map((c) => [c.id, c.fitxers])));
+    setCarpetes(
+      Object.fromEntries(zones.map((z) => [z.id, { fitxers: z.fitxers, noms: z.exemples }]))
+    );
     setExemple(true);
   };
 
@@ -107,18 +109,19 @@ export function NouEstudi() {
           <h1 className="text-display-sm font-semibold tracking-tight">Nou estudi</h1>
           <p className="text-body text-muted-foreground">
             {exemple
-              ? `${exempleCanillo.nom} · ${exempleCanillo.arquitecte} · ${num(exempleCanillo.superficie)} m²`
-              : "Deixa les 3 carpetes de l'arquitecte"}
+              ? `${exemplePedrasses.nom} · ${exemplePedrasses.descripcio}`
+              : "Deixa les 3 carpetes de l'estudi"}
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          {exempleCanillo.carpetes.map((c) => (
+          {zones.map((z) => (
             <DropCarpeta
-              key={c.id}
-              nom={c.nom}
-              format={c.format}
-              fitxers={carpetes[c.id] ?? []}
-              onFitxers={(f) => setCarpetes((prev) => ({ ...prev, [c.id]: f }))}
+              key={z.id}
+              nom={z.nom}
+              carpeta={z.carpeta}
+              format={z.format}
+              contingut={carpetes[z.id]}
+              onContingut={(c) => setCarpetes((prev) => ({ ...prev, [z.id]: c }))}
             />
           ))}
         </div>
@@ -128,7 +131,7 @@ export function NouEstudi() {
             Començar estudi
           </Button>
           <Button size="lg" variant="outline" onClick={carregarExemple}>
-            Carregar exemple
+            Carregar {exemplePedrasses.nom}
           </Button>
           <span className="text-caption text-muted-foreground">Avui: ≈ 2 mesos per estudi</span>
         </div>
@@ -136,16 +139,16 @@ export function NouEstudi() {
     );
   }
 
-  const progres =
-    fase === "done" ? 100 : Math.min(99, (elapsed / DURADA_TOTAL) * 100);
+  const progres = fase === "done" ? 100 : Math.min(99, (elapsed / DURADA_TOTAL) * 100);
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
-          <h1 className="text-display-sm font-semibold tracking-tight">{exempleCanillo.nom}</h1>
+          <h1 className="text-display-sm font-semibold tracking-tight">{exemplePedrasses.nom}</h1>
           <p className="text-body text-muted-foreground">
-            {exempleCanillo.arquitecte} · lliurament {date(exempleCanillo.lliurament)}
+            {exemplePedrasses.arquitecte} · {exemplePedrasses.enginyeria} · lliurament{" "}
+            {date(exemplePedrasses.lliurament)}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -191,21 +194,22 @@ export function NouEstudi() {
 
 function DropCarpeta({
   nom,
+  carpeta,
   format,
-  fitxers,
-  onFitxers,
+  contingut,
+  onContingut,
 }: {
   nom: string;
+  carpeta: string;
   format: string;
-  fitxers: Fitxer[];
-  onFitxers: (f: Fitxer[]) => void;
+  contingut?: Contingut;
+  onContingut: (c: Contingut) => void;
 }) {
   const [sobre, setSobre] = useState(false);
-  const plena = fitxers.length > 0;
-  const pagines = fitxers.reduce((s, f) => s + (f.pagines ?? 0), 0);
+  const plena = (contingut?.fitxers ?? 0) > 0;
   const llegir = (list: FileList | null) => {
     if (!list?.length) return;
-    onFitxers(Array.from(list, (f) => ({ nom: f.name, mida: mida(f.size) })));
+    onContingut({ fitxers: list.length, noms: Array.from(list, (f) => f.name) });
   };
 
   return (
@@ -221,7 +225,7 @@ function DropCarpeta({
         llegir(e.dataTransfer.files);
       }}
       className={cn(
-        "flex min-h-28 cursor-pointer sm:min-h-44 flex-col gap-3 rounded-card p-4 transition-colors",
+        "flex min-h-44 min-w-0 cursor-pointer flex-col gap-3 rounded-card p-4 transition-colors",
         plena
           ? "bg-card shadow-[var(--surface-shadow)] ring-1 ring-surface-border"
           : "border-2 border-dashed border-border hover:border-ring hover:bg-surface-hover",
@@ -230,34 +234,36 @@ function DropCarpeta({
     >
       <input type="file" multiple className="sr-only" onChange={(e) => llegir(e.target.files)} />
       <div className="flex items-center justify-between gap-2">
-        <span className="flex items-center gap-2 text-body font-medium">
+        <span className="flex min-w-0 items-center gap-2 text-body font-medium">
           {plena ? (
-            <FolderCheckIcon className="size-4 text-success" />
+            <FolderCheckIcon className="size-4 shrink-0 text-success" />
           ) : (
-            <FolderIcon className="size-4 text-muted-foreground" />
+            <FolderIcon className="size-4 shrink-0 text-muted-foreground" />
           )}
-          {nom}
+          <span className="truncate">{nom}</span>
         </span>
-        <Badge variant="outline" className="font-mono">
+        <Badge variant="outline" className="shrink-0 font-mono">
           {format}
         </Badge>
       </div>
-      {plena ? (
-        <div className="flex flex-col gap-1 animate-in fade-in">
+      {plena && contingut ? (
+        <div className="flex min-w-0 flex-col gap-1 animate-in fade-in">
           <span className="font-mono text-label tabular-nums">
-            {fitxers.length} fitxers{pagines > 0 && ` · ${pagines} pàg.`}
+            {carpeta} · {contingut.fitxers} fitxers
           </span>
-          {fitxers.slice(0, 3).map((f) => (
-            <span key={f.nom} className="truncate text-caption text-muted-foreground">
-              {f.nom}
+          {contingut.noms.slice(0, 3).map((f) => (
+            <span key={f} className="truncate text-caption text-muted-foreground" title={f}>
+              {f}
             </span>
           ))}
-          {fitxers.length > 3 && (
-            <span className="text-caption text-faint-foreground">+{fitxers.length - 3} més</span>
+          {contingut.fitxers > 3 && (
+            <span className="text-caption text-faint-foreground">+{contingut.fitxers - 3} més</span>
           )}
         </div>
       ) : (
-        <span className="mt-auto text-caption text-muted-foreground">Arrossega o tria fitxers</span>
+        <span className="mt-auto text-caption text-muted-foreground">
+          {carpeta} · arrossega o tria fitxers
+        </span>
       )}
     </label>
   );
@@ -317,7 +323,7 @@ function Pas({
         {estat === "pending" ? (
           <Cap titol={titol} />
         ) : (
-          <Contingut id={id} titol={titol} durada={durada} actiu={actiu} />
+          <ContingutPas id={id} titol={titol} durada={durada} actiu={actiu} />
         )}
       </div>
     </li>
@@ -343,45 +349,40 @@ function Cos({ children, className }: { children: React.ReactNode; className?: s
   );
 }
 
-type ContingutProps = { titol: string; durada: number; actiu: boolean };
+type PasProps = { titol: string; durada: number; actiu: boolean };
 
-function Contingut({ id, ...props }: ContingutProps & { id: EtapaId }) {
+function ContingutPas({ id, ...props }: PasProps & { id: EtapaId }) {
   switch (id) {
     case "lectura":
       return <Lectura {...props} />;
     case "partides":
       return <Partides {...props} />;
-    case "creuament":
-      return <Creuament {...props} />;
-    case "preus":
-      return <Preus {...props} />;
     case "ofertes":
       return <Ofertes {...props} />;
-    case "tancament":
-      return <Tancament {...props} />;
+    case "alertes":
+      return <Alertes {...props} />;
+    case "sollicituds":
+      return <Sollicituds {...props} />;
   }
 }
 
-function Lectura({ titol, durada, actiu }: ContingutProps) {
+function Lectura({ titol, durada, actiu }: PasProps) {
   const progres = useCountUp(100, durada * 0.9, actiu);
-  const fitxers = Math.round((progres / 100) * totals.fitxers);
-  const pagines = Math.round((progres / 100) * totals.pagines);
-  const n = exempleCanillo.carpetes.length;
+  const n = zones.length;
 
   return (
     <>
-      <Cap titol={titol} comptador={`${fitxers} fitxers · ${pagines} pàg.`} />
+      <Cap titol={titol} comptador={`${Math.round((progres / 100) * totals.fitxers)} fitxers`} />
       <Cos className="flex flex-col gap-2">
-        {exempleCanillo.carpetes.map((c, i) => {
+        {zones.map((z, i) => {
           const p = Math.max(0, Math.min(100, (progres / 100) * n * 100 - i * 100));
-          const paginesCarpeta = c.fitxers.reduce((s, f) => s + (f.pagines ?? 0), 0);
           return (
-            <div key={c.id} className="grid grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-3">
-              <span className="truncate text-label">{c.nom}</span>
+            <div key={z.id} className="grid grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-3">
+              <span className="truncate text-label">{z.nom}</span>
               <Progress value={p} />
               <span className="font-mono text-caption text-muted-foreground tabular-nums">
-                {c.fitxers.length}
-                {paginesCarpeta > 0 && ` · ${paginesCarpeta} pàg.`}
+                {Math.round((p / 100) * z.fitxers)}
+                {z.industrials && ` · ${z.industrials} industrials`}
               </span>
             </div>
           );
@@ -391,54 +392,35 @@ function Lectura({ titol, durada, actiu }: ContingutProps) {
   );
 }
 
-function Confianca({ valor }: { valor: number }) {
-  return (
-    <Badge
-      variant="outline"
-      className={cn(
-        "font-mono tabular-nums",
-        valor >= 90 ? "text-success" : valor >= 85 ? "text-foreground" : "text-warning"
-      )}
-    >
-      {valor}%{valor < 85 && " · revisar"}
-    </Badge>
-  );
-}
-
-function Partides({ titol, durada, actiu }: ContingutProps) {
-  const total = useCountUp(totalPartidesRun, durada * 0.9, actiu);
+function Partides({ titol, durada, actiu }: PasProps) {
+  const total = useCountUp(partides.total, durada * 0.9, actiu);
   const visibles = useCountUp(mapejos.length, durada * 0.85, actiu);
-  const fraccio = total / totalPartidesRun;
+  const fraccio = total / partides.total;
 
   return (
     <>
-      <Cap titol={titol} comptador={`${total} partides`} />
+      <Cap titol={titol} comptador={`${num(total)} partides`} />
       <Cos className="flex flex-col gap-3">
-        <div className="grid gap-2 sm:grid-cols-3">
-          {capitolsPujal.map((c) => (
-            <div key={c.nom} className="flex flex-col gap-2 rounded-tile bg-surface-inset p-3">
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="text-label font-medium">{c.nom}</span>
-                <span className="font-mono text-label tabular-nums">
-                  {Math.round(c.partides * fraccio)}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {c.families.map((f) => (
-                  <Badge key={f} variant="secondary" className="font-normal">
-                    {f}
-                  </Badge>
-                ))}
-              </div>
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          {grupsPartides.map((g) => (
+            <div key={g.nom} className="flex flex-col gap-1 rounded-tile bg-surface-inset p-3">
+              <span className="truncate text-label font-medium">{g.nom}</span>
+              <span className="font-mono text-title-sm tabular-nums">
+                {num(Math.round(g.partides * fraccio))}
+              </span>
+              <span className="truncate text-caption text-muted-foreground">{g.detall}</span>
             </div>
           ))}
         </div>
         <div className="flex flex-col divide-y divide-border rounded-tile ring-1 ring-surface-border">
           {mapejos.slice(0, visibles).map((m) => (
             <div
-              key={m.codi}
-              className="grid gap-x-3 gap-y-1 px-3 py-2 duration-300 animate-in fade-in sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,14rem)_auto] sm:items-center"
+              key={m.original}
+              className="grid gap-x-3 gap-y-1 px-3 py-2 duration-300 animate-in fade-in sm:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,13rem)] sm:items-center"
             >
+              <Badge variant="secondary" className="w-fit font-normal">
+                {m.origen}
+              </Badge>
               <span className="truncate text-label text-muted-foreground" title={m.original}>
                 «{m.original}»
               </span>
@@ -447,9 +429,6 @@ function Partides({ titol, durada, actiu }: ContingutProps) {
                 <span className="mr-1.5 font-mono text-muted-foreground">{m.codi}</span>
                 {m.partida}
               </span>
-              <div>
-                <Confianca valor={m.confianca} />
-              </div>
             </div>
           ))}
         </div>
@@ -458,100 +437,158 @@ function Partides({ titol, durada, actiu }: ContingutProps) {
   );
 }
 
-function Creuament({ titol, durada, actiu }: ContingutProps) {
-  const impacte = useCountUp(impacteDiscrepancies, durada * 0.9, actiu);
-  const visibles = useCountUp(discrepanciesRun.length, durada * 0.8, actiu);
+function Ofertes({ titol, durada, actiu }: PasProps) {
+  const llegides = useCountUp(resumOfertes.total, durada * 0.9, actiu);
+  const visibles = useCountUp(ofertesMostra.length, durada * 0.8, actiu);
 
   return (
     <>
-      <Cap titol={titol} comptador={`${eur(impacte)} detectats`} />
+      <Cap titol={titol} comptador={`${llegides} ofertes · ${resumOfertes.families} famílies`} />
       <Cos className="flex flex-col gap-2">
-        {discrepanciesRun.slice(0, visibles).map((d) => (
-          <div
-            key={d.partida}
-            className="flex items-start justify-between gap-3 rounded-tile bg-surface-inset px-3 py-2 duration-300 animate-in fade-in"
-          >
-            <div className="flex min-w-0 flex-col">
-              <span className="text-label font-medium">{d.partida}</span>
-              <span className="text-caption text-muted-foreground">{d.detall}</span>
-            </div>
-            <Badge variant="destructive" className="shrink-0 font-mono tabular-nums">
-              {eur(d.impacte)}
-            </Badge>
-          </div>
-        ))}
-      </Cos>
-    </>
-  );
-}
-
-function Preus({ titol, durada, actiu }: ContingutProps) {
-  const ambPreu = useCountUp(preusRun.ambPreu, durada * 0.9, actiu);
-  const visibles = useCountUp(preusRun.exemples.length, durada * 0.8, actiu);
-
-  return (
-    <>
-      <Cap
-        titol={titol}
-        comptador={`${ambPreu}/${totalPartidesRun} · ${pct((ambPreu / totalPartidesRun) * 100, 0)}`}
-      />
-      <Cos className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1.5">
-          <Progress value={(ambPreu / totalPartidesRun) * 100} />
-          <div className="flex flex-wrap justify-between gap-2 text-caption text-muted-foreground">
-            <span>Preus tancats a {preusRun.obresFont} obres de Pujal</span>
-            <span className="font-mono tabular-nums">
-              {totalPartidesRun - preusRun.ambPreu} a demanar
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          {preusRun.exemples.slice(0, visibles).map((p) => (
+        <div className="flex flex-col divide-y divide-border rounded-tile ring-1 ring-surface-border">
+          {ofertesMostra.slice(0, visibles).map((o) => (
             <div
-              key={p.partida}
-              className="flex items-baseline justify-between gap-3 duration-300 animate-in fade-in"
+              key={o.id}
+              className="flex items-center justify-between gap-3 px-3 py-2 duration-300 animate-in fade-in"
             >
               <div className="flex min-w-0 flex-col">
-                <span className="truncate text-label">{p.partida}</span>
-                <span className="truncate text-caption text-muted-foreground">{p.font}</span>
+                <span className="truncate text-label font-medium">{o.industrial}</span>
+                <span className="truncate text-caption text-muted-foreground">
+                  <span className="font-mono">{o.familia}</span> {o.familiaNom} · {o.habitatges}
+                </span>
               </div>
-              <span className="shrink-0 font-mono text-label tabular-nums">
-                {eurPrecise(p.preu)}/{p.unitat}
-              </span>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="font-mono text-label tabular-nums">{importOferta(o)}</span>
+                <Badge variant="outline" className="font-mono">
+                  {o.format}
+                </Badge>
+              </div>
             </div>
           ))}
+        </div>
+        <div className="flex flex-wrap justify-between gap-2 font-mono text-caption text-muted-foreground tabular-nums">
+          <span>+{resumOfertes.total - ofertesMostra.length} més</span>
+          <span>
+            {resumOfertes.pdf} PDF · {resumOfertes.excel} Excel ·{" "}
+            {resumOfertes.total - resumOfertes.ambImport} sense import
+          </span>
         </div>
       </Cos>
     </>
   );
 }
 
-function Ofertes({ titol, durada, actiu }: ContingutProps) {
-  const industrials = useCountUp(totalIndustrials, durada * 0.9, actiu);
-  const visibles = useCountUp(families.length, durada * 0.7, actiu);
-  const carteraPct = (industrialsCartera / totalIndustrials) * 100;
+function Fila({ esquerra, dreta, className }: { esquerra: React.ReactNode; dreta: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn("flex items-baseline justify-between gap-3 text-label", className)}>
+      <span className="min-w-0 truncate">{esquerra}</span>
+      <span className="shrink-0 font-mono tabular-nums">{dreta}</span>
+    </div>
+  );
+}
+
+function Alerta({ titol, valor, children }: { titol: string; valor: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2 rounded-tile bg-surface-inset p-3 duration-300 animate-in fade-in">
+      <div className="flex items-start justify-between gap-3">
+        <span className="text-label font-medium">{titol}</span>
+        <Badge variant="outline" className="shrink-0 font-mono text-warning tabular-nums">
+          {valor}
+        </Badge>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Alertes({ titol, durada, actiu }: PasProps) {
+  const visibles = useCountUp(alertes.length, durada * 0.85, actiu);
+  const [elec, pladur, inst, est] = alertes;
+  const amplada = Math.max(electric.efhysNormalitzat, electric.besoli.total);
+
+  const blocs = [
+    <Alerta key={elec.id} titol={elec.titol} valor={elec.valor}>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-2">
+          <span className="w-16 shrink-0 text-caption text-muted-foreground">EFHYS</span>
+          <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-muted">
+            <div className="bg-foreground" style={{ width: `${(electric.efhys.total / amplada) * 100}%` }} />
+            <div className="bg-warning" style={{ width: `${(electric.omesesImport / amplada) * 100}%` }} />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-16 shrink-0 text-caption text-muted-foreground">Besolí</span>
+          <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-muted">
+            <div className="bg-foreground" style={{ width: `${(electric.besoli.total / amplada) * 100}%` }} />
+          </div>
+        </div>
+      </div>
+      <Fila esquerra="EFHYS en brut" dreta={eur(electric.efhys.total)} />
+      <Fila
+        esquerra={`+ ${electric.omeses.length} partides omeses (preus Besolí)`}
+        dreta={eur(electric.omesesImport)}
+        className="text-warning"
+      />
+      <Fila esquerra="EFHYS normalitzat" dreta={eur(electric.efhysNormalitzat)} className="font-medium" />
+      <Fila esquerra="Besolí" dreta={eur(electric.besoli.total)} />
+    </Alerta>,
+    <Alerta key={pladur.id} titol={pladur.titol} valor={pladur.valor}>
+      {alertaPladur.ofertes.map((o) => (
+        <Fila
+          key={o.id}
+          esquerra={
+            <>
+              {o.industrial} <span className="text-muted-foreground">· {o.habitatges}</span>
+            </>
+          }
+          dreta={importOferta(o)}
+        />
+      ))}
+    </Alerta>,
+    <Alerta key={inst.id} titol={inst.titol} valor={inst.valor}>
+      <span className="text-caption text-muted-foreground">Paquet</span>
+      {alertaInstallacions.paquets.map((o) => (
+        <Fila key={o.id} esquerra={`${o.industrial} · ${o.habitatges}`} dreta={importOferta(o)} />
+      ))}
+      <span className="text-caption text-muted-foreground">Per ofici</span>
+      {alertaInstallacions.perOfici.map((o) => (
+        <Fila key={o.id} esquerra={`${o.industrial} · ${o.familiaNom} · ${o.habitatges}`} dreta={importOferta(o)} />
+      ))}
+    </Alerta>,
+    <Alerta key={est.id} titol={est.titol} valor={est.valor}>
+      <div className="flex flex-wrap gap-1.5">
+        {familiesSenseOferta.map((f) => (
+          <Badge key={f.codi} variant="outline">
+            <span className="font-mono text-muted-foreground">{f.codi}</span>
+            {f.nom}
+          </Badge>
+        ))}
+      </div>
+    </Alerta>,
+  ];
 
   return (
     <>
-      <Cap titol={titol} comptador={`${families.length} famílies · ${industrials} industrials`} />
+      <Cap titol={titol} comptador={`${visibles} alertes`} />
+      <Cos className="grid gap-2 lg:grid-cols-2">{blocs.slice(0, visibles)}</Cos>
+    </>
+  );
+}
+
+function Sollicituds({ titol, durada, actiu }: PasProps) {
+  const visibles = useCountUp(familiesSenseOferta.length, durada * 0.7, actiu);
+
+  return (
+    <>
+      <Cap titol={titol} comptador={`${familiesSenseOferta.length} famílies sense oferta`} />
       <Cos className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-1.5">
-          {families.slice(0, visibles).map((f) => (
-            <Badge key={f.nom} variant="outline" className="duration-200 animate-in fade-in zoom-in-95">
+          {familiesSenseOferta.slice(0, visibles).map((f) => (
+            <Badge key={f.codi} variant="outline" className="duration-200 animate-in fade-in zoom-in-95">
+              <span className="font-mono text-muted-foreground">{f.codi}</span>
               {f.nom}
-              <span className="font-mono text-muted-foreground">{f.industrials}</span>
             </Badge>
           ))}
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <div className="flex h-1.5 overflow-hidden rounded-full bg-muted">
-            <div className="bg-foreground" style={{ width: `${carteraPct}%` }} />
-            <div className="bg-brand" style={{ width: `${100 - carteraPct}%` }} />
-          </div>
-          <div className="flex justify-between font-mono text-caption text-muted-foreground tabular-nums">
-            <span>{industrialsCartera} de cartera</span>
-            <span>{totalIndustrials - industrialsCartera} nous</span>
-          </div>
         </div>
         <div className="flex flex-col gap-2 rounded-tile bg-surface-inset p-3 text-label">
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -564,50 +601,12 @@ function Ofertes({ titol, durada, actiu }: ContingutProps) {
               {linia}
             </p>
           ))}
-        </div>
-      </Cos>
-    </>
-  );
-}
-
-function Tancament({ titol, durada, actiu }: ContingutProps) {
-  const k = useCountUp(tancamentRun.k, durada * 0.9, actiu, 2);
-  const preu = useCountUp(tancamentRun.preuOferta, durada * 0.9, actiu);
-  const files = [
-    { label: "Cost directe", valor: eur(tancamentRun.costDirecte) },
-    {
-      label: `Indirectes · ${tancamentRun.mesos} mesos · ${tancamentRun.persones} persones`,
-      valor: eur(tancamentRun.indirectes),
-    },
-    { label: "Despeses generals · 6%", valor: eur(tancamentRun.despesesGenerals) },
-  ];
-
-  return (
-    <>
-      <Cap titol={titol} comptador={`K ${k.toFixed(2)}`} />
-      <Cos className="grid gap-4 sm:grid-cols-[1fr_auto]">
-        <div className="flex flex-col gap-1">
-          {files.map((f) => (
-            <div key={f.label} className="flex items-baseline justify-between gap-3 text-label">
-              <span className="text-muted-foreground">{f.label}</span>
-              <span className="font-mono tabular-nums">{f.valor}</span>
-            </div>
-          ))}
-          <div className="mt-1 flex items-baseline justify-between gap-3 border-t pt-2 text-body font-medium">
-            <span>Preu d&apos;oferta</span>
-            <span className="font-mono tabular-nums">{eur(preu)}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 rounded-tile bg-surface-inset px-4 py-3 sm:flex-col sm:items-end sm:justify-center">
-          <div className="flex flex-col sm:items-end">
-            <span className="text-caption text-muted-foreground">Benefici net</span>
-            <span className="font-mono text-title font-medium tabular-nums">
-              {pct(tancamentRun.net)}
+          {correuExemple.adjunt && (
+            <span className="flex min-w-0 items-center gap-1.5 text-caption text-muted-foreground">
+              <PaperclipIcon className="size-3 shrink-0" />
+              <span className="truncate">{correuExemple.adjunt}</span>
             </span>
-          </div>
-          <Badge variant="outline" className="text-success">
-            Dins objectiu 2–3%
-          </Badge>
+          )}
         </div>
       </Cos>
     </>
@@ -621,17 +620,11 @@ function Resum({ elapsed }: { elapsed: number }) {
   }, []);
 
   const xifres = [
-    { label: "Partides", valor: num(totalPartidesRun) },
-    {
-      label: "Amb preu propi",
-      valor: pct((preusRun.ambPreu / totalPartidesRun) * 100, 0),
-    },
-    {
-      label: "Discrepàncies",
-      valor: `${discrepanciesRun.length} · ${eur(impacteDiscrepancies)}`,
-    },
-    { label: "Sol·licituds llestes", valor: num(totalIndustrials) },
-    { label: "Oferta preliminar", valor: eur(tancamentRun.preuOferta) },
+    { label: "Fitxers", valor: num(totals.fitxers) },
+    { label: "Partides", valor: num(partides.total) },
+    { label: "Ofertes", valor: `${resumOfertes.total} · ${resumOfertes.families} famílies` },
+    { label: "Alertes", valor: `${alertes.length} · ${alertes[0].valor} elèctric` },
+    { label: "Sol·licituds llestes", valor: `${familiesSenseOferta.length} famílies` },
   ];
 
   return (
@@ -651,7 +644,7 @@ function Resum({ elapsed }: { elapsed: number }) {
         <Button
           size="lg"
           nativeButton={false}
-          render={<Link href={`/pressupostos/${exempleCanillo.estudiId}`} />}
+          render={<Link href={`/pressupostos/${exemplePedrasses.estudiId}`} />}
         >
           Obrir estudi
           <ArrowRightIcon data-icon="inline-end" />
