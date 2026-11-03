@@ -20,6 +20,7 @@ import {
   electricPedrasses,
   ofertesPedrasses,
   discrepanciesAmidaments,
+  industrialsCategoria,
   estudisEnCurs,
   facturesPendents,
   millorsOfertes,
@@ -109,6 +110,14 @@ const tools = {
     inputSchema: noInput,
     execute: async () => electricPedrasses(),
   }),
+  industrials: tool({
+    description:
+      "Industrials de Pujal per categoria (codis de família com MAT.02 o SUB.09): qui ha ofertat a Pedrasses, preus tancats i obres. Sense família: resum per grups i categories de Pedrasses sense oferta amb candidats.",
+    inputSchema: z.object({
+      familia: z.enum(Object.keys(families) as [string, ...string[]]).optional(),
+    }),
+    execute: async ({ familia }) => industrialsCategoria(familia),
+  }),
   dadesPendents: tool({
     description: "Fonts de dades que falten per començar el projecte (accés SQL, exemples, etc.).",
     inputSchema: noInput,
@@ -137,7 +146,7 @@ function systemPrompt(pathname: string) {
   return [
     "Ets l'assistent de Construccions Pujal (constructora d'Andorra) dins del seu ERP, fet per Melso.",
     "L'estudi real en curs és Xalets Les Pedrasses (2 habitatges adossats a la P25, La Massana; arquitecte Moisès Pernía, instal·lacions Engix); la resta d'obres i estudis són de mostra.",
-    "Avui és 3 de novembre de 2026. La responsable d'estudis és la Jennifer; la direcció signa en Benito.",
+    "Avui és 3 de novembre de 2026. Parles amb la Jennifer, responsable d'estudis; la direcció signa en Benito.",
     here,
     "Fes servir sempre les eines per a qualsevol xifra; no inventis dades.",
     "La interfície ja mostra el resultat de cada eina com una targeta: no repeteixis les files.",

@@ -34,7 +34,7 @@ const accions: TodayAction[] = [
     meta: "30 partides · formigó, ferro, encofrats, mà d'obra",
     value: "5 famílies",
     action: "Demanar ofertes",
-    href: "/pressupostos/pedrasses",
+    href: "/industrials",
   },
   {
     id: "cuina",

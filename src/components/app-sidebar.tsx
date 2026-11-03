@@ -36,14 +36,12 @@ const nav = [
   { href: "/", label: "Avui", icon: HouseIcon, badge: "5" },
   { href: "/pressupostos", label: "Pressupostos", icon: CalculatorIcon },
   { href: "/preus", label: "Preus", icon: TagIcon },
+  { href: "/industrials", label: "Industrials", icon: HardHatIcon },
   { href: "/obres", label: "Obres", icon: Building2Icon },
   { href: "/dades", label: "Dades", icon: DatabaseIcon },
 ];
 
-const properament = [
-  { label: "Industrials", icon: HardHatIcon },
-  { label: "Contractes", icon: BookOpenIcon },
-];
+const properament = [{ label: "Contractes", icon: BookOpenIcon }];
 
 // Melso's nav button: muted until active, active keeps its fill on hover.
 const NAV_BUTTON_CLASS =

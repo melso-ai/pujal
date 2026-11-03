@@ -15,6 +15,7 @@ const numFmt = new Intl.NumberFormat("ca-AD");
 export const eur = (n: number) => eurFmt.format(n);
 export const eurPrecise = (n: number) => eurPreciseFmt.format(n);
 export const num = (n: number) => numFmt.format(n);
+export const plural = (n: number, una: string, moltes: string) => `${num(n)} ${n === 1 ? una : moltes}`;
 export const pct = (n: number, digits = 1) => `${n.toFixed(digits)}%`;
 
 export function date(iso: string) {

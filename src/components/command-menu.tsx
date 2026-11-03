@@ -6,6 +6,7 @@ import {
   CalculatorIcon,
   DatabaseIcon,
   FilePlusIcon,
+  HardHatIcon,
   HouseIcon,
   SendIcon,
   TagIcon,
@@ -24,6 +25,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { estudis, etapesEstudi, obres } from "@/lib/data";
+import { industrials, nomFamilia } from "@/lib/industrials";
 import { elements } from "@/lib/preus";
 
 export const OPEN_COMMAND_EVENT = "pujal:command";
@@ -32,6 +34,7 @@ const pages = [
   { label: "Avui", href: "/", icon: HouseIcon },
   { label: "Pressupostos", href: "/pressupostos", icon: CalculatorIcon },
   { label: "Preus", href: "/preus", icon: TagIcon },
+  { label: "Industrials", href: "/industrials", icon: HardHatIcon },
   { label: "Obres", href: "/obres", icon: Building2Icon },
   { label: "Dades", href: "/dades", icon: DatabaseIcon },
 ];
@@ -107,6 +110,19 @@ export function CommandMenu() {
                 <TagIcon />
                 {e.nom}
                 <CommandShortcut>{e.unitat}</CommandShortcut>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandGroup heading="Industrials">
+            {industrials.map((i) => (
+              <CommandItem
+                key={i.id}
+                value={`industrial ${i.nom} ${i.families.map(nomFamilia).join(" ")}`}
+                onSelect={() => go(`/industrials/${i.id}`)}
+              >
+                <HardHatIcon />
+                {i.nom}
+                <CommandShortcut>{i.families[0] ? nomFamilia(i.families[0]) : ""}</CommandShortcut>
               </CommandItem>
             ))}
           </CommandGroup>

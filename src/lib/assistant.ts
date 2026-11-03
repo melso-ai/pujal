@@ -14,7 +14,17 @@ import {
   obres,
   passosAprovacio,
 } from "@/lib/data";
-import { date, eur, eurPrecise, pct } from "@/lib/format";
+import { date, eur, eurPrecise, pct, plural } from "@/lib/format";
+import {
+  codis,
+  familiesCobertes,
+  grups,
+  industrials,
+  nomFamilia,
+  perFamilia,
+  resumIndustrial,
+  SENSE_OFERTA_PEDRASSES,
+} from "@/lib/industrials";
 import { comparatiuElectric, families, ofertes } from "@/lib/pedrasses";
 import { pctSigne, preu, resumElement, resumPreus, volumLabel } from "@/lib/preus";
 
@@ -52,6 +62,12 @@ export function suggestionsFor(pathname: string): string[] {
       "Quines discrepàncies hi ha als amidaments?",
       "Quina és la millor oferta de cada partida?",
       "Quin preu he de posar per treure un 3% net?",
+    ];
+  if (pathname.startsWith("/industrials"))
+    return [
+      "Qui ens pot fer l'estructura de Pedrasses?",
+      "Quins industrials de pladur tenim?",
+      "Demana oferta de ferro per a Pedrasses",
     ];
   if (pathname.startsWith("/preus"))
     return ["A quant tanquem el formigó HA-25?", "On podem agrupar volum aquest trimestre?"];
@@ -286,5 +302,53 @@ export function electricPedrasses(): Card {
       { label: "EFHYS normalitzat", value: eur(normalitzat), hint: `${normalitzat > c.besoli.total ? "+" : ""}${eur(normalitzat - c.besoli.total)} vs Besoli` },
     ],
     links: [{ label: "Veure comparatiu", href: "/pressupostos/pedrasses" }],
+  };
+}
+
+export function industrialsCategoria(familia?: string): Card {
+  if (familia) {
+    const llista = perFamilia(familia);
+    return {
+      title: `${familia} ${nomFamilia(familia)} · ${llista.length} industrials`,
+      rows: llista.length
+        ? llista.map((i) => {
+            const r = resumIndustrial(i, familia);
+            return {
+              label: i.nom,
+              value: r.millorOferta !== null ? eur(r.millorOferta) : plural(r.obres, "obra", "obres"),
+              hint: r.pedrasses
+                ? "Ha ofertat a Pedrasses"
+                : r.tancats
+                  ? plural(r.tancats, "preu tancat", "preus tancats")
+                  : i.desde
+                    ? `Treballa amb Pujal des de ${i.desde}`
+                    : undefined,
+            };
+          })
+        : [{ label: "Cap industrial en aquesta categoria", value: "—" }],
+      links: llista.slice(0, 3).map((i) => ({ label: i.nom, href: `/industrials/${i.id}` })),
+    };
+  }
+  return {
+    title: `${industrials.length} industrials · ${familiesCobertes.length} de ${codis.length} categories`,
+    rows: [
+      ...grups.map((g) => {
+        const fams = codis.filter((c) => c.startsWith(g.prefix));
+        return {
+          label: g.nom,
+          value: `${industrials.filter((i) => i.families.some((f) => f.startsWith(g.prefix))).length} industrials`,
+          hint: `${fams.filter((f) => familiesCobertes.includes(f)).length} de ${fams.length} categories`,
+        };
+      }),
+      ...SENSE_OFERTA_PEDRASSES.map((f) => ({
+        label: `Pedrasses sense oferta · ${nomFamilia(f)}`,
+        value: `${perFamilia(f).length} candidats`,
+        hint: perFamilia(f)
+          .slice(0, 3)
+          .map((i) => i.nom)
+          .join(", "),
+      })),
+    ],
+    links: [{ label: "Obrir industrials", href: "/industrials" }],
   };
 }
