@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 
 import { DiscrepanciesEstudi } from "@/components/estudi/discrepancies";
+import { NantaEstudi } from "@/components/nanta/nanta-estudi";
 import { EstudiTabs } from "@/components/estudi/estudi-tabs";
 import { OfertaEstudi } from "@/components/estudi/oferta";
 import { Comparatiu } from "@/components/estudi/comparatiu";
@@ -77,6 +78,14 @@ async function Estudi({
   const { id } = await params;
   const estudi = getEstudi(id);
   if (!estudi) notFound();
+  if (estudi.id === "nanta-alta") {
+    return (
+      <>
+        <PageHeader crumbs={[{ label: "Pressupostos", href: "/pressupostos" }, { label: estudi.nom }]} />
+        <NantaEstudi />
+      </>
+    );
+  }
 
   const real = estudi.id === exemplePedrasses.estudiId;
   const obra = obres.find((o) => o.id === estudi.id);

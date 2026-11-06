@@ -150,6 +150,16 @@ export type Estudi = {
 
 export const estudis: Estudi[] = [
   {
+    id: "nanta-alta",
+    nom: "Nanta Alta",
+    arquitecte: "DATA Arquitectura",
+    superficie: 7_716,
+    importEstimat: 0,
+    etapa: 1,
+    lliurament: "2026-11-30",
+    responsable: "Jennifer",
+  },
+  {
     id: "pedrasses",
     nom: "Xalets Les Pedrasses",
     arquitecte: "Moisès Pernía",
